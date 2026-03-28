@@ -92,12 +92,12 @@ model_page = st.Page("pages/model_comparison.py", title="So sánh Models", icon=
 anomaly_page = st.Page("pages/anomaly_results.py", title="Kết quả bất thường", icon="🔍")
 posts_page = st.Page("pages/posts.py", title="Danh sách tin đăng", icon="📋")
 detail_page = st.Page("pages/post_detail.py", title="Chi tiết tin đăng", icon="🔎")
-
+data_page = st.Page("pages/data_understanding.py", title="Data & EDA", icon="📁")
 pg = st.navigation({
     "📋 Tổng quan": [home_page, business_page, task_page],
     "🔮 Dự đoán & Phát hiện": [prediction_page],
     "📰 Dữ liệu": [posts_page, detail_page],
-    "📈 Kết quả & Báo cáo": [model_page, anomaly_page],
+    "📈 Kết quả & Báo cáo": [data_page, model_page, anomaly_page],
 })
 
 pg.run()

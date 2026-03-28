@@ -225,7 +225,7 @@ def main():
             st.markdown("**Đóng góp từng phương pháp:**")
             import matplotlib.pyplot as plt
             
-            methods = ["Residual-z\n(w=0.35)", "Min/Max\n(w=0.15)", "Percentile\n(w=0.20)", "Isolation Forest\n(w=0.30)"]
+            methods = ["Residual-z\n(w=0.40)", "Min/Max\n(w=0.10)", "Percentile\n(w=0.20)", "Isolation Forest\n(w=0.30)"]
             raw_scores = [anomaly["s_resid"], anomaly["s_minmax"], anomaly["s_percentile"], anomaly["s_ml"]]
             bar_colors = ["#e53935" if s > 0.5 else ("#ff9800" if s > 0.2 else "#4caf50") for s in raw_scores]
             

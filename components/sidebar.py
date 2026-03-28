@@ -2,8 +2,7 @@ import streamlit as st
 
 def display():
     with st.sidebar:
-        st.markdown("### 🏠 Dự đoán giá nhà")
-        st.markdown("##### & Phát hiện bất thường")
+        st.markdown("### 🏠 Dự đoán giá nhà & Phát hiện bất thường")
         st.markdown("*Nhà Tốt — TP.HCM*")
         st.divider()
 
@@ -23,13 +22,16 @@ def display():
 
         st.divider()
         st.markdown("**📈 Kết quả & Báo cáo**")
+        st.page_link(label="📁 Data & EDA", page="pages/data_understanding.py")
         st.page_link(label="📊 So sánh Models", page="pages/model_comparison.py")
         st.page_link(label="🔍 Kết quả bất thường", page="pages/anomaly_results.py")
         
         st.divider()
         st.markdown(
             "<div style='text-align:center; font-size:12px; color:#888; margin-top:20px;'>"
-            "DL07 — K311 — Team 2<br>"
+            "DL07 — K311 — Team 9<br>"
+            "Đoàn Nhật Quang<br>"
+            "Phan Ngọc Minh Quân<br>"
             "ĐH Khoa Học Tự Nhiên TP.HCM"
             "</div>",
             unsafe_allow_html=True

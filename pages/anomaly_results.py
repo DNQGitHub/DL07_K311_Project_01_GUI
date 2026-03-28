@@ -11,7 +11,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import components.sidebar as sidebar
 
-from utils.helpers import load_data, train_models, score_all_posts
+from utils.helpers import load_data, train_models, score_all_posts, get_notebook_anomaly_results
 
 
 def render():
@@ -52,7 +52,7 @@ def render_methodology_tab():
 
     with col1:
         st.markdown("""
-        #### 1️⃣ Residual Z-Score (Trọng số: 35%)
+        #### 1️⃣ Residual Z-Score (Trọng số: 40%)
         
         Đo **khoảng cách** giữa giá thực và giá dự đoán:
         
@@ -66,7 +66,7 @@ def render_methodology_tab():
         """)
 
         st.markdown("""
-        #### 2️⃣ Min/Max Violation (Trọng số: 15%)
+        #### 2️⃣ Min/Max Violation (Trọng số: 10%)
         
         Kiểm tra giá có **nằm ngoài biên** cực trị:
         
@@ -101,7 +101,7 @@ def render_methodology_tab():
     # Composite formula
     st.markdown("#### 📐 Công thức Composite Score")
     st.code("""
-    Anomaly_Score = 0.35 × S_residual + 0.15 × S_minmax + 0.20 × S_percentile + 0.30 × S_isolation_forest
+    Anomaly_Score = 0.40 × S_residual + 0.10 × S_minmax + 0.20 × S_percentile + 0.30 × S_isolation_forest
 
     Trong đó: mỗi S ∈ [0, 1], Anomaly_Score ∈ [0, 100]
     """, language="text")
@@ -129,6 +129,65 @@ def render_methodology_tab():
 
 def render_results_tab():
     st.markdown("### 📊 Kết quả phân tích bất thường")
+
+    # ── ACTUAL NOTEBOOK RESULTS (from 6,979 real posts) ──
+    st.markdown("#### 📌 Kết quả thực tế (6,979 tin đăng — từ Notebook 07 & 08)")
+    nb_results = get_notebook_anomaly_results()
+
+    c1, c2, c3, c4 = st.columns(4)
+    dist = nb_results["pyspark_distribution"]
+    total = nb_results["total_posts"]
+    c1.metric("🟢 Bình thường", f"{dist['🟢 Bình thường']:,}", f"{dist['🟢 Bình thường']/total*100:.1f}%")
+    c2.metric("🟡 Cần xem xét", f"{dist['🟡 Cần xem xét']:,}", f"{dist['🟡 Cần xem xét']/total*100:.1f}%")
+    c3.metric("🟠 Bất thường", f"{dist['🟠 Bất thường']:,}", f"{dist['🟠 Bất thường']/total*100:.1f}%")
+    c4.metric("🔴 Rất bất thường", f"{dist['🔴 Rất bất thường']:,}", f"{dist['🔴 Rất bất thường']/total*100:.1f}%")
+
+    st.markdown("---")
+
+    # Actual anomaly distribution by district
+    col_nb1, col_nb2 = st.columns(2)
+
+    with col_nb1:
+        st.markdown("##### Phân bố bất thường theo quận (score ≥ 50)")
+        by_dist = nb_results["by_district"]
+        dist_df = pd.DataFrame([
+            {"Quận": q, "Giá CAO": v["cao"], "Giá THẤP": v["thap"], "Tổng": v["total"]}
+            for q, v in by_dist.items()
+        ])
+        st.dataframe(dist_df, use_container_width=True, hide_index=True)
+
+        fig_dist = px.bar(dist_df, x="Quận", y=["Giá CAO", "Giá THẤP"],
+                          barmode="group", title="Số tin bất thường theo Quận & Loại",
+                          color_discrete_map={"Giá CAO": "#e74c3c", "Giá THẤP": "#3498db"})
+        fig_dist.update_layout(height=350)
+        st.plotly_chart(fig_dist, use_container_width=True)
+
+    with col_nb2:
+        st.markdown("##### Top tin đăng bất thường nhất (thực tế)")
+        top_df = pd.DataFrame(nb_results["top_anomalies"])
+        top_df.columns = ["Quận", "Loại hình", "DT(m²)", "Giá thực", "Giá predict", "Score", "S_resid", "S_minmax", "S_pctl", "S_ML"]
+        st.dataframe(
+            top_df.style.background_gradient(subset=["Score"], cmap="RdYlGn_r"),
+            use_container_width=True, hide_index=True
+        )
+
+        st.caption(f"Tổng cộng: **{nb_results['total_anomalous_50']}** / {total} tin có score ≥ 50 (**{nb_results['pct_anomalous']}%**)")
+
+    st.markdown("---")
+
+    # Method contributions
+    st.markdown("##### Đóng góp từng phương pháp (trên dữ liệu thực)")
+    method_rows = []
+    for method, info in nb_results["method_contributions"].items():
+        method_rows.append({
+            "Phương pháp": method,
+            "Số tin phát hiện": str(info["detected"]),
+            "Tỷ lệ": f"{info['pct']}%",
+        })
+    st.dataframe(pd.DataFrame(method_rows), use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+    st.markdown("#### 🔄 Minh họa trực tiếp (Demo data)")
 
     # Load and score data
     df = load_data()

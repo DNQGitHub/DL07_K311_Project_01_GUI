@@ -81,7 +81,7 @@ def main():
     st.markdown("#### Bài toán 2 — Anomaly Detection (Composite Score)")
     anom_data = {
         "Phương pháp": ["Residual-z", "Vi phạm Min/Max", "Ngoài P10–P90", "Isolation Forest"],
-        "Trọng số": ["w₁ = 0.35", "w₂ = 0.15", "w₃ = 0.20", "w₄ = 0.30"],
+        "Trọng số": ["w₁ = 0.40", "w₂ = 0.10", "w₃ = 0.20", "w₄ = 0.30"],
         "Ý nghĩa": [
             "Sai số dự đoán chuẩn hóa theo khu vực",
             "Vượt giá tối thiểu / tối đa hợp lý",

@@ -108,21 +108,25 @@ def main():
         st.pyplot(fig)
     
     st.divider()
-    
-    # Quick navigation — updated with new pages
-    st.markdown("### 🚀 Bắt đầu sử dụng")
-    nav1, nav2, nav3, nav4 = st.columns(4)
-    with nav1:
-        st.info("📝 **Dự đoán giá**\n\nNhập thông tin nhà để nhận giá dự đoán từ nhiều models.")
-        st.page_link("pages/price_prediction.py", label="→ Dự đoán giá", icon="🔮")
-    with nav2:
-        st.success("📊 **So sánh 8 Models**\n\nXem kết quả đầy đủ của 8 mô hình trên 2 nền tảng.")
-        st.page_link("pages/model_comparison.py", label="→ So sánh Models", icon="📊")
-    with nav3:
-        st.warning("🔍 **Phát hiện bất thường**\n\nXem phương pháp và kết quả phát hiện giá bất thường.")
-        st.page_link("pages/anomaly_results.py", label="→ Anomaly Results", icon="🔍")
-    with nav4:
-        st.info("📋 **Dữ liệu tin đăng**\n\nDuyệt, lọc tin đăng và xem chi tiết phân tích.")
-        st.page_link("pages/posts.py", label="→ Danh sách tin đăng", icon="📰")
 
-main()
+    # Quick navigation
+    st.markdown("### 🚀 Bắt đầu sử dụng")
+    n1, n2, n3, n4, n5 = st.columns(5)
+    with n1:
+        st.info("📁 **Data & EDA**\n\nData pipeline, thống kê, feature engineering.")
+        st.page_link("pages/data_understanding.py", label="→ Data & EDA", icon="📁")
+    with n2:
+        st.info("📝 **Dự đoán giá**\n\nNhập thông tin nhà, nhận giá từ models.")
+        st.page_link("pages/price_prediction.py", label="→ Dự đoán", icon="🔮")
+    with n3:
+        st.success("📈 **So sánh Models**\n\nKết quả 8 models trên 2 nền tảng.")
+        st.page_link("pages/model_comparison.py", label="→ Models", icon="📊")
+    with n4:
+        st.warning("🔍 **Bất thường**\n\nXem phương pháp và kết quả phát hiện giá bất thường.")
+        st.page_link("pages/anomaly_results.py", label="→ Anomaly", icon="🔍")
+    with n5:
+        st.info("📋 **Tin đăng**\n\nDuyệt, lọc tin và xem chi tiết.")
+        st.page_link("pages/posts.py", label="→ Tin đăng", icon="📰")
+
+if __name__ == "__main__":
+    main()

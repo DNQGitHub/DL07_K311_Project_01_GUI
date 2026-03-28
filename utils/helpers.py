@@ -352,8 +352,8 @@ def compute_anomaly_score(input_features, actual_price, predicted_price, models,
     elif actual_price > price_max:
         s_minmax = min((actual_price - price_max) / (price_max + 1e-9), 1.0)
 
-    # Composite: w1=0.35, w2=0.15, w3=0.20, w4=0.30
-    total = 0.35 * s_resid + 0.15 * s_minmax + 0.20 * s_percentile + 0.30 * s_ml
+    # Composite: w1=0.40, w2=0.10, w3=0.20, w4=0.30 (khớp notebook 08)
+    total = 0.40 * s_resid + 0.10 * s_minmax + 0.20 * s_percentile + 0.30 * s_ml
     anomaly_score = round(total * 100, 1)
 
     # Label
@@ -488,4 +488,64 @@ def get_notebook_feature_importances():
         "o_ngay": 0.0075,
         "is_chinh_chu": 0.0070,
         "is_kinh_doanh": 0.0063,
+    }
+
+
+def get_notebook_anomaly_results():
+    """Return actual anomaly detection results from notebooks 07 & 08."""
+    return {
+        "total_posts": 6979,
+        "weights": {"w1_resid": 0.40, "w2_minmax": 0.10, "w3_percentile": 0.20, "w4_ml": 0.30},
+        "pyspark_distribution": {
+            "🟢 Bình thường": 6364,
+            "🟡 Cần xem xét": 444,
+            "🟠 Bất thường": 127,
+            "🔴 Rất bất thường": 44,
+        },
+        "total_anomalous_50": 171,  # score >= 50
+        "pct_anomalous": 2.5,
+        "score_stats": {"mean": 13.7, "std": 12.2, "min": 0.2, "max": 96.0},
+        "by_district": {
+            "Bình Thạnh": {"cao": 59, "thap": 15, "total": 74},
+            "Gò Vấp": {"cao": 39, "thap": 19, "total": 58},
+            "Phú Nhuận": {"cao": 27, "thap": 12, "total": 39},
+        },
+        "method_contributions": {
+            "Residual-Z": {"detected": 87, "threshold": "|Z| > 3", "pct": 1.2},
+            "Min/Max Bounds": {"detected": 679, "pct": 9.7},
+            "Percentile P10-P90": {"detected": "~10%", "pct": 10.0},
+            "Isolation Forest": {"detected": 265, "threshold": "S_ML > 0.6", "pct": 3.8},
+        },
+        "top_anomalies": [
+            {"quan": "Gò Vấp", "loai_hinh": "Nhà mặt phố", "dien_tich": 106.0, "gia_thuc": 142.0, "gia_predict": 53.47, "score": 96.0, "s_resid": 1.0, "s_minmax": 1.0, "s_pctl": 1.0, "s_ml": 0.868},
+            {"quan": "Gò Vấp", "loai_hinh": "Nhà ngõ, hẻm", "dien_tich": 48.0, "gia_thuc": 57.9, "gia_predict": 23.11, "score": 90.0, "s_resid": 1.0, "s_minmax": 1.0, "s_pctl": 0.885, "s_ml": 0.744},
+            {"quan": "Gò Vấp", "loai_hinh": "Nhà ngõ, hẻm", "dien_tich": 18.0, "gia_thuc": 0.89, "gia_predict": 2.72, "score": 48.1, "s_resid": 0.481, "s_minmax": 0.0, "s_pctl": 0.0, "s_ml": 0.620},
+            {"quan": "Gò Vấp", "loai_hinh": "Nhà ngõ, hẻm", "dien_tich": 96.0, "gia_thuc": 26.0, "gia_predict": 12.67, "score": 45.4, "s_resid": 0.454, "s_minmax": 0.0, "s_pctl": 0.0, "s_ml": 0.0},
+            {"quan": "Bình Thạnh", "loai_hinh": "Nhà mặt phố", "dien_tich": 26.0, "gia_thuc": 12.0, "gia_predict": 5.73, "score": 44.8, "s_resid": 0.448, "s_minmax": 0.0, "s_pctl": 0.0, "s_ml": 0.0},
+        ],
+    }
+
+
+def get_data_pipeline_info():
+    """Return data pipeline summary from notebooks 01-04."""
+    return {
+        "raw_data": {"rows": 8273, "cols": 24, "sources": 3},
+        "after_cleaning": {"rows": 7961, "cols": 9, "dropped_rows": 312, "dropped_cols": 15},
+        "after_feature_eng": {"rows": 6979, "cols": 29, "new_features": 22},
+        "feature_groups": {
+            "Categorical": ["giay_to_phap_ly", "loai_hinh", "quan"],
+            "Numeric gốc": ["dien_tich", "gia_ban", "so_phong_ngu"],
+            "Giá khu vực": ["gia_kv_hien_tai", "gia_kv_mean", "gia_kv_trend", "gia_kv_volatility"],
+            "Text: Vị trí": ["is_mat_tien", "is_hxh", "is_lo_goc"],
+            "Text: Kinh tế": ["is_kinh_doanh", "is_dong_tien"],
+            "Text: Đặc tính": ["is_no_hau", "has_thang_may", "is_nha_moi", "is_nha_nat",
+                               "has_quy_hoach", "is_chinh_chu", "has_san_thuong", "has_gara", "o_ngay"],
+            "Text: Bất thường": ["is_ngop_bank", "is_ban_gap"],
+            "Tổng hợp": ["tien_nghi_score", "log_gia_ban"],
+        },
+        "top_correlations": [
+            ("dien_tich", 0.69), ("so_phong_ngu", 0.58), ("gia_kv_mean", 0.28),
+            ("is_mat_tien", 0.18), ("has_thang_may", 0.17), ("tien_nghi_score", 0.15),
+        ],
+        "price_stats": {"mean": 8.47, "median": 6.69, "std": 9.12, "min": 0.35, "max": 142.0},
     }
