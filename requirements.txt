@@ -4,6 +4,3 @@ pandas
 matplotlib
 seaborn
 scikit-learn
-gensim
-pyvi
-beautifulsoup4
