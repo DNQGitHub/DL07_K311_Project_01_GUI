@@ -29,10 +29,12 @@ def display():
         st.divider()
         st.markdown(
             "<div style='text-align:center; font-size:12px; color:#888; margin-top:20px;'>"
-            "DL07 — K311 — Team 9<br>"
+            "DL07 — K311 — Team 9<br><br>"
             "Đoàn Nhật Quang<br>"
+            "Email: dnq.httt@gmail.com<br>"
             "Phan Ngọc Minh Quân<br>"
-            "ĐH Khoa Học Tự Nhiên TP.HCM"
+            "Email: quan.phanngocminh111@gmail.com<br>"
+            "<br>ĐH Khoa Học Tự Nhiên TP.HCM"
             "</div>",
             unsafe_allow_html=True
         )
