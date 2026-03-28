@@ -7,15 +7,15 @@ def main():
     st.markdown("# 👥 Task Assignment")
     st.markdown("---")
     
-    st.markdown("### Phân công nhiệm vụ — Team 2")
+    st.markdown("### Phân công nhiệm vụ — Team 9")
     st.markdown("""
     > **Lớp:** DL07 — K311  
-    > **Môn học:** LDS0 (Capstone Project)  
+    > **Môn học:** Đồ án AI tốt nghiệp  
     > **Trường:** ĐH Khoa Học Tự Nhiên TP.HCM
+
+    > **Thành viên:** Phan Ngọc Minh Quân, Đoàn Nhật Quang
     """)
-    
-    st.info("⚠️ Vui lòng cập nhật thông tin thành viên và phân công cụ thể tại đây.")
-    
+       
     # Placeholder task table
     tasks = {
         "Giai đoạn": [
@@ -51,11 +51,20 @@ def main():
             "✅ Hoàn thành",
             "✅ Hoàn thành",
             "✅ Hoàn thành",
-            "🔄 Đang làm",
+            "✅ Hoàn thành",
             "🔄 Đang làm",
         ],
         "Thành viên": [
-            "—", "—", "—", "—", "—", "—", "—", "—", "—", "—"
+            "Phan Ngọc Minh Quân, Đoàn Nhật Quang", 
+            "Phan Ngọc Minh Quân, Đoàn Nhật Quang", 
+            "Phan Ngọc Minh Quân, Đoàn Nhật Quang", 
+            "Đoàn Nhật Quang", 
+            "Phan Ngọc Minh Quân", 
+            "Đoàn Nhật Quang", 
+            "Phan Ngọc Minh Quân", 
+            "Đoàn Nhật Quang", 
+            "Phan Ngọc Minh Quân, Đoàn Nhật Quang", 
+            "Phan Ngọc Minh Quân, Đoàn Nhật Quang"
         ],
     }
     
@@ -64,13 +73,13 @@ def main():
     st.markdown("---")
     st.markdown("### 📅 Timeline")
     st.markdown("""
-    | Tuần | Nội dung | Trạng thái |
+    | Ngày  | Nội dung | Trạng thái |
     |------|----------|-----------|
-    | 1–2 | Thu thập dữ liệu, Data Loading, Cleaning | ✅ |
-    | 3–4 | Feature Engineering, EDA | ✅ |
-    | 5–6 | Modeling (Sklearn + PySpark) | ✅ |
-    | 7–8 | Anomaly Detection | ✅ |
-    | 9–10 | GUI Streamlit + Báo cáo | 🔄 |
+    | 1 | Thu thập dữ liệu, Data Loading, Cleaning | ✅ |
+    | 2 | Feature Engineering, EDA | ✅ |
+    | 3–4 | Modeling (Sklearn + PySpark) | ✅ |
+    | 5-6 | Anomaly Detection | ✅ |
+    | 7 | GUI Streamlit + Báo cáo | 🔄 |
     """)
 
 main()
