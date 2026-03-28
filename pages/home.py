@@ -14,7 +14,7 @@ def main():
             Nền tảng Nhà Tốt — Dữ liệu 3 quận TP.HCM: Bình Thạnh, Gò Vấp, Phú Nhuận
         </p>
         <p style="color: #ccc; font-size: 14px; margin-top: 4px;">
-            DL07 · K311 · Team 2 — ĐH Khoa Học Tự Nhiên TP.HCM
+            DL07 · K311 · Team 9 — ĐH Khoa Học Tự Nhiên TP.HCM
         </p>
     </div>
     """, unsafe_allow_html=True)
