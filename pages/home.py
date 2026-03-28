@@ -16,6 +16,12 @@ def main():
         <p style="color: #ccc; font-size: 14px; margin-top: 4px;">
             DL07 · K311 · Team 9 — ĐH Khoa Học Tự Nhiên TP.HCM
         </p>
+        <p style="color: #ccc; font-size: 14px; margin-top: 4px;">
+            GVHD: Thạc sỹ Khuất Thùy Phương
+        </p>
+        <p style="color: #ccc; font-size: 14px; margin-top: 4px;">
+            Đoàn Nhật Quang – Phan Ngọc Minh Quân
+        </p>
     </div>
     """, unsafe_allow_html=True)
     

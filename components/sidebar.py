@@ -3,7 +3,7 @@ import streamlit as st
 def display():
     with st.sidebar:
         st.markdown("### 🏠 Dự đoán giá nhà & Phát hiện bất thường")
-        st.markdown("*Nhà Tốt — TP.HCM*")
+        st.markdown("*GVHD: Thạc sỹ Khuất Thùy Phương*")
         st.divider()
 
         st.markdown("**📋 Tổng quan**")
