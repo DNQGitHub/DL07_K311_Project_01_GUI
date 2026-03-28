@@ -63,8 +63,8 @@ def main():
             "Đoàn Nhật Quang", 
             "Phan Ngọc Minh Quân", 
             "Đoàn Nhật Quang", 
-            "Phan Ngọc Minh Quân, Đoàn Nhật Quang", 
-            "Phan Ngọc Minh Quân, Đoàn Nhật Quang"
+            "Phan Ngọc Minh Quân",
+            "Phan Ngọc Minh Quân",
         ],
     }
     
