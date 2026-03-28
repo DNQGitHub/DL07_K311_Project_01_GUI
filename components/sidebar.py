@@ -20,6 +20,11 @@ def display():
         st.markdown("**📰 Dữ liệu tin đăng**")
         st.page_link(label="📋 Danh sách tin đăng", page="pages/posts.py")
         st.page_link(label="🔍 Chi tiết tin đăng", page="pages/post_detail.py")
+
+        st.divider()
+        st.markdown("**📈 Kết quả & Báo cáo**")
+        st.page_link(label="📊 So sánh Models", page="pages/model_comparison.py")
+        st.page_link(label="🔍 Kết quả bất thường", page="pages/anomaly_results.py")
         
         st.divider()
         st.markdown(

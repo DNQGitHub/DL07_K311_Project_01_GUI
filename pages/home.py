@@ -1,6 +1,6 @@
 import streamlit as st
 import components.sidebar as sidebar
-from utils.helpers import load_data, train_models
+from utils.helpers import load_data, train_models, get_notebook_sklearn_results
 
 def main():
     sidebar.display()
@@ -19,19 +19,23 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # Stats overview
+    # Stats overview - use actual notebook results
     df = load_data()
     models = train_models()
+    notebook_results = get_notebook_sklearn_results()
+    best_r2 = max(r["R²"] for r in notebook_results)
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        st.metric("📊 Tổng tin đăng", f"{len(df):,}")
+        st.metric("📊 Tổng tin đăng (thực tế)", "6,979")
     with col2:
-        st.metric("🏘️ Số quận", df["quan"].nunique())
+        st.metric("🏘️ Số quận", "3")
     with col3:
-        st.metric("💰 Giá trung vị", f"{df['gia_ban'].median():.2f} tỷ")
+        st.metric("🤖 Models đã train", "8", "4 Sklearn + 4 PySpark")
     with col4:
-        st.metric("🎯 Model R²", f"{models['test_score']:.3f}")
+        st.metric("🎯 Best R² (Sklearn)", f"{best_r2:.4f}")
+    with col5:
+        st.metric("🎯 Best R² (PySpark)", "0.8201")
     
     st.divider()
     
@@ -45,26 +49,56 @@ def main():
         từ dữ liệu tin đăng bất động sản trên nền tảng Nhà Tốt (nhatot.com).
         
         **Hai bài toán chính:**
-        1. **Dự đoán giá** — Regression với Random Forest, XGBoost, Linear Regression, SVR 
-           trên cả Sklearn và PySpark
-        2. **Phát hiện bất thường** — Composite Score kết hợp Residual-z, Isolation Forest, 
-           Percentile range, Min/Max violation
+        """)
+
+        st.markdown("""
+        #### 📌 Bài toán 1: Dự đoán giá nhà
+        - **Sklearn (4 models):** Random Forest, Gradient Boosting, Linear Regression, Ridge
+        - **PySpark (4 models):** Random Forest, GBT, Decision Tree, Linear Regression
+        - **Metrics:** MAE, RMSE, R² — đánh giá trên tập test (20%)
+        - **Best Model:** Random Forest Sklearn (R² = 0.846, MAE = 0.140)
+        """)
+        
+        st.markdown("""
+        #### 📌 Bài toán 2: Phát hiện bất thường
+        - **4 phương pháp kết hợp:** Residual Z-Score (35%), Isolation Forest (30%), 
+          Percentile P10-P90 (20%), Min/Max (15%)
+        - **Phân tích theo phân khúc** (Quận × Loại hình)
+        - **Anomaly Score** 0-100 → phân loại 4 mức
         """)
         
         st.markdown("### 🔧 Công nghệ sử dụng")
         st.markdown("""
-        - **ML Framework**: Scikit-learn, PySpark MLlib
-        - **Best Model**: Random Forest (Sklearn R²≈0.84, PySpark R²≈0.82)
-        - **Anomaly Detection**: Composite Score (4 phương pháp × trọng số)
-        - **GUI**: Streamlit
+        | Thành phần | Công nghệ |
+        |-----------|-----------|
+        | **ML Framework** | Scikit-learn, PySpark MLlib |
+        | **Best Model** | Random Forest (R² = 0.846) |
+        | **Anomaly** | Composite Score (4 phương pháp) |
+        | **Visualization** | Plotly, Matplotlib |
+        | **GUI** | Streamlit |
+        | **Data** | 6,979 BĐS, 29 features |
         """)
     
     with col_right:
-        st.markdown("### 📊 Phân bố dữ liệu theo quận")
+        st.markdown("### 📊 Bảng tổng hợp kết quả Sklearn")
+        
+        import pandas as pd
+        df_results = pd.DataFrame(notebook_results)
+        df_results.columns = ["Mô hình", "MAE (log)", "RMSE (log)", "R²", "MAE (tỷ)", "RMSE (tỷ)"]
+        st.dataframe(
+            df_results.style
+            .highlight_max(subset=["R²"], color="#2ecc71", props="font-weight: bold")
+            .highlight_min(subset=["MAE (log)"], color="#2ecc71", props="font-weight: bold")
+            .format({"R²": "{:.4f}", "MAE (log)": "{:.4f}", "RMSE (log)": "{:.4f}", "MAE (tỷ)": "{:.3f}", "RMSE (tỷ)": "{:.3f}"}),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        st.markdown("### 📊 Phân bố dữ liệu (Demo)")
         quan_counts = df["quan"].value_counts()
         st.bar_chart(quan_counts, color="#1a73e8")
         
-        st.markdown("### 💰 Phân bố giá bán (tỷ VNĐ)")
+        st.markdown("### 💰 Phân bố giá bán (Demo, tỷ VNĐ)")
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots(figsize=(6, 3))
         ax.hist(df["gia_ban"], bins=30, color="#2d6a4f", edgecolor="white", alpha=0.85)
@@ -75,17 +109,20 @@ def main():
     
     st.divider()
     
-    # Quick navigation
+    # Quick navigation — updated with new pages
     st.markdown("### 🚀 Bắt đầu sử dụng")
-    nav1, nav2, nav3 = st.columns(3)
+    nav1, nav2, nav3, nav4 = st.columns(4)
     with nav1:
-        st.info("📝 **Nhập thông tin nhà**\n\nNhập thông số căn nhà để nhận giá dự báo và kiểm tra bất thường.")
+        st.info("📝 **Dự đoán giá**\n\nNhập thông tin nhà để nhận giá dự đoán từ nhiều models.")
         st.page_link("pages/price_prediction.py", label="→ Dự đoán giá", icon="🔮")
     with nav2:
-        st.info("📋 **Xem danh sách tin đăng**\n\nDuyệt, lọc và tìm kiếm trong bộ dữ liệu tin đăng.")
-        st.page_link("pages/posts.py", label="→ Danh sách tin đăng", icon="📰")
+        st.success("📊 **So sánh 8 Models**\n\nXem kết quả đầy đủ của 8 mô hình trên 2 nền tảng.")
+        st.page_link("pages/model_comparison.py", label="→ So sánh Models", icon="📊")
     with nav3:
-        st.info("🔍 **Chi tiết tin đăng**\n\nXem chi tiết từng tin đăng kèm phân tích bất thường.")
-        st.page_link("pages/post_detail.py", label="→ Chi tiết & Anomaly", icon="🔍")
+        st.warning("🔍 **Phát hiện bất thường**\n\nXem phương pháp và kết quả phát hiện giá bất thường.")
+        st.page_link("pages/anomaly_results.py", label="→ Anomaly Results", icon="🔍")
+    with nav4:
+        st.info("📋 **Dữ liệu tin đăng**\n\nDuyệt, lọc tin đăng và xem chi tiết phân tích.")
+        st.page_link("pages/posts.py", label="→ Danh sách tin đăng", icon="📰")
 
 main()

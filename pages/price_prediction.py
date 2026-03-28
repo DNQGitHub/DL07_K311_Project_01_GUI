@@ -1,7 +1,11 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 import components.sidebar as sidebar
-from utils.helpers import load_data, train_models, prepare_input, predict_price, compute_anomaly_score
+from utils.helpers import (
+    load_data, train_models, prepare_input, predict_price,
+    predict_all_models, compute_anomaly_score
+)
 
 def main():
     sidebar.display()
@@ -14,9 +18,10 @@ def main():
     
     st.markdown("""
     Nhập thông tin căn nhà bạn muốn đánh giá. Hệ thống sẽ:
-    1. **Dự đoán giá bán** hợp lý dựa trên Random Forest (R²≈{:.3f})
+    1. **Dự đoán giá bán** từ **4 mô hình Sklearn** (Linear Regression, Ridge, Random Forest, Gradient Boosting)
     2. **Kiểm tra bất thường** bằng Composite Score (Residual-z + Isolation Forest + Percentile + Min/Max)
-    """.format(models["test_score"]))
+    3. **Phân tích theo phân khúc** (Quận × Loại hình) cho chẩn đoán chính xác hơn
+    """)
     
     st.markdown("---")
     
@@ -90,18 +95,23 @@ def main():
         
         input_features = prepare_input(row, models)
         predicted = predict_price(input_features, models)
-        anomaly = compute_anomaly_score(input_features, gia_ban_input, predicted, models)
+        all_predictions = predict_all_models(input_features, models)
+        anomaly = compute_anomaly_score(
+            input_features, gia_ban_input, predicted, models,
+            quan=quan, loai_hinh=loai_hinh
+        )
         
-        # Results
+        # ── RESULTS ──
         st.markdown("---")
-        st.markdown("## 📊 Kết quả")
+        st.markdown("## 📊 Kết quả dự đoán")
         
+        # ─── Main result cards ───
         res_col1, res_col2, res_col3 = st.columns(3)
         
         with res_col1:
             st.markdown(f"""
             <div style="background: #e8f5e9; padding: 24px; border-radius: 12px; text-align: center; border: 2px solid #4caf50;">
-                <p style="color: #666; margin: 0; font-size: 14px;">💰 Giá dự báo</p>
+                <p style="color: #666; margin: 0; font-size: 14px;">💰 Giá dự báo (Random Forest)</p>
                 <p style="font-size: 36px; font-weight: 800; color: #2e7d32; margin: 8px 0;">{predicted:.2f} tỷ</p>
                 <p style="color: #888; margin: 0; font-size: 13px;">≈ {predicted * 1000:.0f} triệu VNĐ</p>
             </div>
@@ -133,9 +143,78 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         
-        # Anomaly detail
+        # ─── Multi-model prediction comparison (NEW) ───
+        st.markdown("---")
+        st.markdown("### 🤖 Dự đoán từ tất cả 4 mô hình Sklearn")
+        
+        pred_data = []
+        for name, pred_val in all_predictions.items():
+            pred_diff = gia_ban_input - pred_val
+            pred_pct = (pred_diff / pred_val * 100) if pred_val > 0 else 0
+            pred_data.append({
+                "Mô hình": name,
+                "Giá dự đoán (tỷ)": round(pred_val, 2),
+                "Chênh lệch (tỷ)": round(pred_diff, 2),
+                "Chênh lệch (%)": round(pred_pct, 1),
+            })
+        
+        df_preds = pd.DataFrame(pred_data)
+        
+        col_table, col_chart = st.columns([2, 3])
+        
+        with col_table:
+            st.dataframe(
+                df_preds.style.format({
+                    "Giá dự đoán (tỷ)": "{:.2f}",
+                    "Chênh lệch (tỷ)": "{:+.2f}",
+                    "Chênh lệch (%)": "{:+.1f}%",
+                }),
+                use_container_width=True,
+                hide_index=True,
+            )
+            
+            # Average and range
+            avg_pred = np.mean(list(all_predictions.values()))
+            min_pred = min(all_predictions.values())
+            max_pred = max(all_predictions.values())
+            st.info(f"""
+            **📊 Tổng hợp dự đoán:**
+            - Trung bình: **{avg_pred:.2f} tỷ**
+            - Khoảng: **{min_pred:.2f} – {max_pred:.2f} tỷ**
+            - Giá đăng: **{gia_ban_input:.2f} tỷ**
+            """)
+        
+        with col_chart:
+            import plotly.graph_objects as go
+            
+            model_names = list(all_predictions.keys())
+            pred_values = list(all_predictions.values())
+            colors = ["#e74c3c" if name == "Random Forest" else "#3498db" for name in model_names]
+            
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=model_names, y=pred_values,
+                marker_color=colors,
+                text=[f"{v:.2f} tỷ" for v in pred_values],
+                textposition="outside",
+                name="Giá dự đoán",
+            ))
+            fig.add_hline(
+                y=gia_ban_input, line_dash="dash", line_color="#ff9800",
+                annotation_text=f"Giá đăng: {gia_ban_input:.2f} tỷ",
+            )
+            fig.update_layout(
+                title="So sánh dự đoán — 4 mô hình Sklearn",
+                yaxis_title="Giá (tỷ VNĐ)",
+                height=400,
+                showlegend=False,
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # ─── Anomaly detail ───
         st.markdown("---")
         st.markdown("### 🔍 Chi tiết phân tích bất thường")
+        st.caption(f"Phân khúc phân tích: **{quan}** × **{loai_hinh}**")
         
         detail_col1, detail_col2 = st.columns(2)
         
@@ -148,10 +227,10 @@ def main():
             
             methods = ["Residual-z\n(w=0.35)", "Min/Max\n(w=0.15)", "Percentile\n(w=0.20)", "Isolation Forest\n(w=0.30)"]
             raw_scores = [anomaly["s_resid"], anomaly["s_minmax"], anomaly["s_percentile"], anomaly["s_ml"]]
-            colors = ["#e53935" if s > 0.5 else ("#ff9800" if s > 0.2 else "#4caf50") for s in raw_scores]
+            bar_colors = ["#e53935" if s > 0.5 else ("#ff9800" if s > 0.2 else "#4caf50") for s in raw_scores]
             
             fig, ax = plt.subplots(figsize=(6, 3))
-            bars = ax.barh(methods, raw_scores, color=colors, edgecolor="white", height=0.6)
+            bars = ax.barh(methods, raw_scores, color=bar_colors, edgecolor="white", height=0.6)
             ax.set_xlim(0, 1.1)
             ax.set_xlabel("Score (0–1)")
             ax.axvline(x=0.5, color="#999", linestyle="--", alpha=0.5)
@@ -196,10 +275,14 @@ def main():
             # Summary table
             st.markdown("**Tổng hợp:**")
             summary = {
-                "Chỉ số": ["Giá đăng bán", "Giá dự báo (RF)", "Chênh lệch", "Anomaly Score", "Phân loại"],
+                "Chỉ số": [
+                    "Giá đăng bán", "Giá dự báo (RF)", "Giá trung bình 4 models",
+                    "Chênh lệch", "Anomaly Score", "Phân loại"
+                ],
                 "Giá trị": [
                     f"{gia_ban_input:.2f} tỷ",
-                    f"{predicted:.2f} tỷ", 
+                    f"{predicted:.2f} tỷ",
+                    f"{avg_pred:.2f} tỷ",
                     f"{diff:+.2f} tỷ ({diff_pct:+.1f}%)",
                     f"{anomaly['anomaly_score']}/100",
                     anomaly['label'],

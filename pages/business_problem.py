@@ -71,10 +71,10 @@ def main():
     st.markdown("#### Bài toán 1 — Prediction Models")
     pred_data = {
         "Môi trường": ["Sklearn", "Sklearn", "Sklearn", "Sklearn", "PySpark", "PySpark", "PySpark", "PySpark"],
-        "Model": ["Linear Regression", "Random Forest", "XGBoost", "SVR", 
-                   "Linear Regression", "Random Forest", "GBT", "Decision Tree"],
-        "Vai trò": ["Baseline", "🏆 Best model", "Ensemble mạnh", "Nonlinear",
-                     "Baseline", "🏆 Best model", "Ensemble mạnh", "Bổ sung"],
+        "Model": ["Linear Regression", "Ridge Regression", "Random Forest", "Gradient Boosting", 
+                   "Linear Regression", "Decision Tree", "Random Forest", "GBT"],
+        "Vai trò": ["Baseline", "Regularized baseline", "🏆 Best model (R²=0.846)", "Ensemble mạnh (R²=0.826)",
+                     "Baseline (R²=0.685)", "Tree model (R²=0.765)", "🏆 Best PySpark (R²=0.820)", "Ensemble (R²=0.805)"],
     }
     st.dataframe(pred_data, use_container_width=True, hide_index=True)
     
