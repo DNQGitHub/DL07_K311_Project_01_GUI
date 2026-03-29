@@ -425,6 +425,77 @@ def safe_encode_series(le, val):
         return 0
 
 
+def score_uploaded_csv(uploaded_df, models):
+    """
+    Score a user-uploaded CSV for anomaly detection.
+    Required columns: quan, loai_hinh, dien_tich, so_phong_ngu, gia_ban.
+    Missing feature columns are filled with sensible defaults.
+    """
+    df = uploaded_df.copy()
+
+    # Validate required columns
+    required = ["quan", "loai_hinh", "dien_tich", "so_phong_ngu", "gia_ban"]
+    missing = [c for c in required if c not in df.columns]
+    if missing:
+        raise ValueError(f"CSV thiếu các cột bắt buộc: {', '.join(missing)}")
+
+    # ── Fill optional columns with defaults ──
+    default_values = {
+        "giay_to_phap_ly": "chưa xác định",
+        "is_mat_tien": 0, "is_hxh": 0, "is_lo_goc": 0,
+        "is_kinh_doanh": 0, "is_dong_tien": 0, "is_no_hau": 0,
+        "has_thang_may": 0, "is_nha_moi": 0, "is_nha_nat": 0,
+        "has_quy_hoach": 0, "is_chinh_chu": 0, "has_san_thuong": 0,
+        "has_gara": 0, "o_ngay": 0, "is_ngop_bank": 0, "is_ban_gap": 0,
+        "tien_nghi_score": 0,
+        "gia_kv_hien_tai": 70.0, "gia_kv_mean": 70.0,
+        "gia_kv_trend": 0.0, "gia_kv_volatility": 0.05,
+    }
+    for col, default in default_values.items():
+        if col not in df.columns:
+            df[col] = default
+
+    # ── Add ID and metadata if missing ──
+    if "id" not in df.columns:
+        df.insert(0, "id", range(1, len(df) + 1))
+    if "tieu_de" not in df.columns:
+        df["tieu_de"] = df.apply(lambda r: f"{r['loai_hinh']} {r.get('dia_chi', r['quan'])}", axis=1)
+    if "mo_ta" not in df.columns:
+        df["mo_ta"] = ""
+    if "dia_chi" not in df.columns:
+        df["dia_chi"] = df["quan"]
+
+    # ── Encode & predict ──
+    le_quan = models["le_quan"]
+    le_loai = models["le_loai"]
+    le_giay = models["le_giay"]
+
+    df["quan_encoded"] = df["quan"].apply(lambda x: safe_encode_series(le_quan, x))
+    df["loai_hinh_encoded"] = df["loai_hinh"].apply(lambda x: safe_encode_series(le_loai, x))
+    df["giay_to_encoded"] = df["giay_to_phap_ly"].apply(lambda x: safe_encode_series(le_giay, x))
+
+    X = df[PREDICTION_FEATURES].values
+    predictions = models["rf_model"].predict(X)
+    df["gia_du_bao"] = predictions.round(2)
+
+    # Anomaly scoring per row
+    scores = []
+    for idx in range(len(df)):
+        row_features = X[idx:idx+1]
+        actual = df.iloc[idx]["gia_ban"]
+        pred = predictions[idx]
+        quan = df.iloc[idx]["quan"]
+        loai_hinh = df.iloc[idx]["loai_hinh"]
+        result = compute_anomaly_score(row_features, actual, pred, models, quan=quan, loai_hinh=loai_hinh)
+        scores.append(result)
+
+    score_df = pd.DataFrame(scores)
+    for col in score_df.columns:
+        df[col] = score_df[col].values
+
+    return df
+
+
 # ─────────────────────────────────────────────
 # PYSPARK RESULTS (hardcoded from notebook runs)
 # ─────────────────────────────────────────────
