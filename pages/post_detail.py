@@ -115,32 +115,42 @@ def main():
     with tab_csv:
         st.markdown("### 📤 Upload CSV — Xem chi tiết từng căn")
         st.markdown("""
-        Upload file CSV chứa thông tin nhiều căn nhà. Hệ thống sẽ:
-        1. Dự đoán giá & chấm điểm bất thường cho từng căn
-        2. Cho phép bạn chọn từng căn để xem phân tích chi tiết
+        Upload file CSV từ dữ liệu **Nhà Tốt**. Hệ thống sẽ:
+        1. **Parse dữ liệu thô** (giá, diện tích, quận, đặc điểm...) → dự đoán giá & chấm điểm
+        2. Cho phép bạn **chọn từng căn** để xem phân tích chi tiết
         """)
         
         with st.expander("📋 Định dạng CSV yêu cầu"):
             st.markdown("""
-            **Cột bắt buộc:** `quan`, `loai_hinh`, `dien_tich`, `so_phong_ngu`, `gia_ban`
+            **Cột bắt buộc tối thiểu:** `gia_ban`, `dien_tich`
             
-            | quan | loai_hinh | dien_tich | so_phong_ngu | gia_ban |
-            |------|-----------|-----------|-------------|---------|
-            | Gò Vấp | Nhà trong hẻm | 65.0 | 3 | 4.5 |
-            | Bình Thạnh | Nhà mặt tiền | 120.0 | 5 | 15.0 |
+            **Cột nên có** (hệ thống tự parse):
+            | Cột | Ví dụ | Mô tả |
+            |-----|-------|-------|
+            | `tieu_de` | Nhà cần bán mặt tiền đường | Tiêu đề tin |
+            | `gia_ban` | 7,39 tỷ | Giá (tự parse) |
+            | `dien_tich` | 45 m² | Diện tích (tự parse) |
+            | `dia_chi` | ...Quận Phú Nhuận, Tp HCM | Trích xuất quận |
+            | `mo_ta` | Nhà 1 lầu, chính chủ... | Trích xuất đặc điểm |
+            | `loai_hinh` | Nhà ngõ, hẻm | Loại hình nhà |
+            | `so_phong_ngu` | 2 phòng | Số phòng ngủ |
+            | `dac_diem` | Hẻm xe hơi | Đặc điểm bổ sung |
             """)
             
             sample = pd.DataFrame({
-                "quan": ["Gò Vấp", "Bình Thạnh", "Phú Nhuận"],
-                "loai_hinh": ["Nhà trong hẻm", "Nhà mặt tiền", "Nhà phố"],
-                "dien_tich": [65.0, 120.0, 45.0],
-                "so_phong_ngu": [3, 5, 2],
-                "gia_ban": [4.5, 15.0, 3.2],
+                "tieu_de": ["Nhà cần bán mặt tiền đường", "Bán nhà hẻm xe hơi"],
+                "gia_ban": ["7,39 tỷ", "3,5 tỷ"],
+                "dien_tich": ["45 m²", "50 m²"],
+                "dia_chi": ["Đường Phan Đăng Lưu, Quận Phú Nhuận, Tp HCM", "Đường Quang Trung, Quận Gò Vấp, Tp HCM"],
+                "loai_hinh": ["Nhà ngõ, hẻm", "Nhà ngõ, hẻm"],
+                "so_phong_ngu": ["2 phòng", "3 phòng"],
             })
             csv_sample = sample.to_csv(index=False).encode("utf-8-sig")
-            st.download_button("⬇️ Tải CSV mẫu", csv_sample, "mau_du_lieu_nha.csv", "text/csv", key="detail_csv_sample")
+            st.download_button("⬇️ Tải CSV mẫu", csv_sample, "mau_du_lieu_nha_nhatot.csv", "text/csv", key="detail_csv_sample")
         
-        uploaded_file = st.file_uploader("Chọn file CSV", type=["csv"], key="detail_csv_upload")
+        uploaded_file = st.file_uploader("Chọn file CSV", type=["csv"],
+                                         help="File CSV từ Nhà Tốt (ít nhất 2 cột: gia_ban, dien_tich)",
+                                         key="detail_csv_upload")
         
         if uploaded_file is not None:
             try:

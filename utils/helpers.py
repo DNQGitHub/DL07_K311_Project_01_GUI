@@ -425,21 +425,253 @@ def safe_encode_series(le, val):
         return 0
 
 
+def _parse_price(val):
+    """Parse Vietnamese price string like '7,39 tỷ' → 7.39, '500 triệu' → 0.5."""
+    if pd.isna(val):
+        return np.nan
+    s = str(val).strip().lower().replace(".", "").replace(",", ".")
+    try:
+        return float(s)  # already numeric
+    except ValueError:
+        pass
+    import re
+    m = re.search(r"([\d.]+)\s*(tỷ|ty)", s)
+    if m:
+        return float(m.group(1))
+    m = re.search(r"([\d.]+)\s*(triệu|tr)", s)
+    if m:
+        return float(m.group(1)) / 1000.0
+    # Try to extract any number
+    nums = re.findall(r"[\d.]+", s)
+    if nums:
+        return float(nums[0])
+    return np.nan
+
+
+def _parse_area(val):
+    """Parse area string like '45 m²' or '45.5m2' → 45.0."""
+    if pd.isna(val):
+        return np.nan
+    s = str(val).strip().replace(",", ".")
+    import re
+    m = re.search(r"([\d.]+)", s)
+    return float(m.group(1)) if m else np.nan
+
+
+def _parse_rooms(val):
+    """Parse room count like '2 phòng' or '2' → 2."""
+    if pd.isna(val):
+        return 0
+    s = str(val).strip().replace(",", ".")
+    import re
+    m = re.search(r"(\d+)", s)
+    return int(m.group(1)) if m else 0
+
+
+def _extract_quan(dia_chi):
+    """Extract district name from address string like '...Quận Phú Nhuận...'."""
+    if pd.isna(dia_chi):
+        return "Gò Vấp"  # default
+    s = str(dia_chi)
+    import re
+    # Try "Quận Xxx"
+    m = re.search(r"Quận\s+([\w\sÀ-ỹ]+?)(?:,|$)", s)
+    if m:
+        q = m.group(1).strip()
+        # Normalize known districts
+        known = {"Bình Thạnh": "Bình Thạnh", "Gò Vấp": "Gò Vấp", "Phú Nhuận": "Phú Nhuận",
+                 "Go Vap": "Gò Vấp", "Binh Thanh": "Bình Thạnh", "Phu Nhuan": "Phú Nhuận"}
+        for key, val in known.items():
+            if key.lower() in q.lower():
+                return val
+        return q
+    # Fallback: check if known district name appears anywhere
+    for name in ["Bình Thạnh", "Gò Vấp", "Phú Nhuận"]:
+        if name.lower() in s.lower():
+            return name
+    return "Gò Vấp"
+
+
+def _extract_text_features(mo_ta, dac_diem, tieu_de):
+    """Extract binary text features from mo_ta, dac_diem, and tieu_de fields."""
+    combined = " ".join([str(x) for x in [mo_ta, dac_diem, tieu_de] if pd.notna(x)]).lower()
+
+    def has(keywords):
+        return 1 if any(kw in combined for kw in keywords) else 0
+
+    return {
+        "is_mat_tien": has(["mặt tiền", "mat tien", "mặt phố"]),
+        "is_hxh": has(["hẻm xe hơi", "hxh", "hem xe hoi", "hẻm ô tô", "hẻm oto"]),
+        "is_lo_goc": has(["lô góc", "lo goc", "góc 2 mặt"]),
+        "is_kinh_doanh": has(["kinh doanh", "buôn bán"]),
+        "is_dong_tien": has(["dòng tiền", "cho thuê", "thu nhập"]),
+        "is_no_hau": has(["nở hậu", "no hau"]),
+        "has_thang_may": has(["thang máy", "thang may"]),
+        "is_nha_moi": has(["nhà mới", "nha moi", "mới xây", "xây mới"]),
+        "is_nha_nat": has(["nhà nát", "nha nat", "cấp 4"]),
+        "has_quy_hoach": has(["quy hoạch", "quy hoach"]),
+        "is_chinh_chu": has(["chính chủ", "chinh chu"]),
+        "has_san_thuong": has(["sân thượng", "san thuong"]),
+        "has_gara": has(["gara", "ga ra", "garage", "để xe hơi"]),
+        "o_ngay": has(["ở ngay", "o ngay", "dọn vào ở"]),
+        "is_ngop_bank": has(["ngộp", "ngop", "ngân hàng"]),
+        "is_ban_gap": has(["bán gấp", "ban gap", "cần bán gấp"]),
+    }
+
+
+def _parse_don_gia_for_kv(don_gia_str):
+    """Parse đơn giá like '164,22 triệu/m²' to float (triệu/m²)."""
+    if pd.isna(don_gia_str):
+        return 70.0  # default
+    s = str(don_gia_str).strip().replace(".", "").replace(",", ".")
+    import re
+    m = re.search(r"([\d.]+)", s)
+    return float(m.group(1)) if m else 70.0
+
+
+def parse_raw_nhatot_csv(raw_df):
+    """
+    Parse a raw CSV from Nhà Tốt with columns like:
+    tieu_de, gia_ban, don_gia, dien_tich, dia_chi, mo_ta, loai_hinh,
+    giay_to_phap_ly, so_phong_ngu, dac_diem, ...
+    
+    Returns a cleaned DataFrame ready for score_uploaded_csv().
+    """
+    df = raw_df.copy()
+
+    # ── Parse gia_ban ──
+    if "gia_ban" in df.columns:
+        df["gia_ban"] = df["gia_ban"].apply(_parse_price)
+    else:
+        raise ValueError("CSV thiếu cột 'gia_ban'")
+
+    # ── Parse dien_tich ──
+    if "dien_tich" in df.columns:
+        df["dien_tich"] = df["dien_tich"].apply(_parse_area)
+    else:
+        raise ValueError("CSV thiếu cột 'dien_tich'")
+
+    # ── Extract quận from dia_chi ──
+    if "dia_chi" in df.columns:
+        df["quan"] = df["dia_chi"].apply(_extract_quan)
+    else:
+        df["quan"] = "Gò Vấp"
+
+    # ── Parse loai_hinh ──
+    if "loai_hinh" not in df.columns:
+        df["loai_hinh"] = "Nhà trong hẻm"
+    else:
+        # Normalize loai_hinh values
+        loai_map = {
+            "nhà ngõ, hẻm": "Nhà trong hẻm",
+            "nhà ngõ hẻm": "Nhà trong hẻm",
+            "nhà hẻm": "Nhà trong hẻm",
+            "nhà trong hẻm": "Nhà trong hẻm",
+            "nhà mặt phố": "Nhà mặt tiền",
+            "nhà mặt tiền": "Nhà mặt tiền",
+            "nhà phố": "Nhà phố",
+            "biệt thự": "Biệt thự",
+        }
+        def normalize_loai(v):
+            if pd.isna(v):
+                return "Nhà trong hẻm"
+            s = str(v).strip().lower()
+            for key, val in loai_map.items():
+                if key in s:
+                    return val
+            return str(v).strip()
+        df["loai_hinh"] = df["loai_hinh"].apply(normalize_loai)
+
+    # ── Parse so_phong_ngu ──
+    if "so_phong_ngu" in df.columns:
+        df["so_phong_ngu"] = df["so_phong_ngu"].apply(_parse_rooms)
+    else:
+        df["so_phong_ngu"] = 2
+
+    # ── Parse giay_to_phap_ly ──
+    if "giay_to_phap_ly" in df.columns:
+        def normalize_giayto(v):
+            if pd.isna(v):
+                return "chưa xác định"
+            s = str(v).strip().lower()
+            if "sổ" in s or "đã có" in s:
+                return "Sổ hồng/ Sổ đỏ"
+            elif "hợp đồng" in s:
+                return "Hợp đồng mua bán"
+            return "chưa xác định"
+        df["giay_to_phap_ly"] = df["giay_to_phap_ly"].apply(normalize_giayto)
+    else:
+        df["giay_to_phap_ly"] = "chưa xác định"
+
+    # ── Extract text features from mo_ta + dac_diem + tieu_de ──
+    text_features_list = []
+    for _, row in df.iterrows():
+        feats = _extract_text_features(
+            row.get("mo_ta", ""),
+            row.get("dac_diem", ""),
+            row.get("tieu_de", ""),
+        )
+        text_features_list.append(feats)
+    text_df = pd.DataFrame(text_features_list)
+    for col in text_df.columns:
+        df[col] = text_df[col].values
+
+    # ── Tien nghi score (sum of positive features) ──
+    positive_feats = ["has_thang_may", "has_san_thuong", "has_gara", "is_lo_goc", "is_nha_moi", "o_ngay"]
+    df["tien_nghi_score"] = df[positive_feats].sum(axis=1).astype(int)
+
+    # ── Giá khu vực from đơn giá ──
+    if "don_gia" in df.columns:
+        df["gia_kv_hien_tai"] = df["don_gia"].apply(_parse_don_gia_for_kv)
+        df["gia_kv_mean"] = df["gia_kv_hien_tai"] * 0.95  # approximate
+    else:
+        df["gia_kv_hien_tai"] = 70.0
+        df["gia_kv_mean"] = 70.0
+    df["gia_kv_trend"] = 0.0
+    df["gia_kv_volatility"] = 0.05
+
+    # ── Drop invalid rows (NaN in critical columns) ──
+    df = df.dropna(subset=["gia_ban", "dien_tich"])
+    df = df[df["gia_ban"] > 0]
+    df = df[df["dien_tich"] > 0]
+
+    if len(df) == 0:
+        raise ValueError("Không có dòng dữ liệu hợp lệ sau khi parse (gia_ban hoặc dien_tich = 0 hoặc NaN)")
+
+    df = df.reset_index(drop=True)
+    return df
+
+
 def score_uploaded_csv(uploaded_df, models):
     """
     Score a user-uploaded CSV for anomaly detection.
-    Required columns: quan, loai_hinh, dien_tich, so_phong_ngu, gia_ban.
-    Missing feature columns are filled with sensible defaults.
+    Accepts EITHER:
+    - Raw Nhà Tốt CSV format (with columns like 'tieu_de', 'gia_ban' as '7,39 tỷ', etc.)
+    - Clean format (with numeric quan, loai_hinh, dien_tich, so_phong_ngu, gia_ban)
     """
     df = uploaded_df.copy()
 
-    # Validate required columns
+    # ── Detect format: if gia_ban contains non-numeric strings, parse raw Nhà Tốt ──
+    needs_parsing = False
+    if "gia_ban" in df.columns:
+        sample_val = str(df["gia_ban"].iloc[0]).strip()
+        try:
+            float(sample_val)
+        except ValueError:
+            needs_parsing = True
+    if "quan" not in df.columns:
+        needs_parsing = True
+
+    if needs_parsing:
+        df = parse_raw_nhatot_csv(df)
+
+    # Validate required columns after parsing
     required = ["quan", "loai_hinh", "dien_tich", "so_phong_ngu", "gia_ban"]
     missing = [c for c in required if c not in df.columns]
     if missing:
         raise ValueError(f"CSV thiếu các cột bắt buộc: {', '.join(missing)}")
 
-    # ── Fill optional columns with defaults ──
+    # ── Fill remaining optional columns with defaults ──
     default_values = {
         "giay_to_phap_ly": "chưa xác định",
         "is_mat_tien": 0, "is_hxh": 0, "is_lo_goc": 0,
