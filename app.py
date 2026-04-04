@@ -22,6 +22,11 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
+    /* Preserve Material Icons from being overwritten by Inter */
+    i, .material-symbols-rounded, .material-icons, [data-testid="stIconMaterial"], [class*="stIcon"] {
+        font-family: 'Material Symbols Rounded', 'Material Icons' !important;
+    }
+
     /* ── Sidebar Styling ── */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
