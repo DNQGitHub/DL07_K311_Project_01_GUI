@@ -56,6 +56,10 @@ def display():
         st.page_link(label="🕷️ Data Crawling", page="pages/data_crawling.py")
 
         st.divider()
+        st.markdown("**👋 Về chúng tôi**")
+        st.page_link(label="👋 Giới thiệu", page="pages/introduction.py")
+
+        st.divider()
         
         avatar_phuong = get_avatar_html("phuong", "P")
         avatar_quang = get_avatar_html("quang", "Q")

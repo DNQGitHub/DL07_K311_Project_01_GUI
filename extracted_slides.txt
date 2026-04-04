@@ -1,0 +1,150 @@
+=== ppt/slides/slide1.xml ===
+Đồ án tốt nghiệp Data Science DỰ ĐOÁN GIÁ &amp; PHÁT HIỆN BẤT THƯỜNG GIÁ NHÀ Ở Nền tảng Nhà Tốt — Chợ Tốt DL07 — K311 — Đoàn Nhật Quang – Phan Ngọc Minh Quân Trường ĐH Khoa Học Tự Nhiên TP.HCM — Trung Tâm Tin Học 2026 GVHD: Thạc sỹ Khuất Thùy Phương 
+
+=== ppt/slides/slide2.xml ===
+NỘI DUNG 2 / 22 01 Business Objective Bối cảnh &amp; mục tiêu dự án 02 Data Collection &amp; Cleaning Thu thập, làm sạch 8,273 → 6,979 tin 03 EDA &amp; Feature Engineering Phân tích dữ liệu &amp; tạo 29 features 04 Modeling — Dự đoán giá Sklearn &amp; PySpark — 4 models mỗi môi trường 05 Anomaly Detection 4 phương pháp kết hợp — Composite Score 06 Kết luận &amp; Triển khai Tổng hợp &amp; hướng phát triển 07 Bonus: Crawl Data Tự thu thập dữ liệu từ nhatot.com
+
+=== ppt/slides/slide3.xml ===
+01 Business Objective Bối cảnh thị trường &amp; mục tiêu dự án
+
+=== ppt/slides/slide4.xml ===
+Bối cảnh &amp; Mục tiêu Bối cảnh Nhà   Tốt  (nhatot.com) —  nền   tảng  BĐS  thuộc   Chợ   Tốt Dữ   liệu   nhà   riêng   lẻ   đang   rao   bán   tại  3  quận  TP.HCM: Bình  Thạnh ,  Gò   Vấp ,  Phú   Nhuận Người   bán   cần   gợi  ý  giá   hợp   lý Nền   tảng   cần   cảnh   báo  tin  đăng   giá   bất   thường Mục tiêu Bài   toán  1:  Dự   đoán   giá   nhà →  Xây   dựng  model Regression  gợi  ý  giá   đăng   bán Bài   toán  2:  Phát   hiện   bất   thường →  Xác   định  tin  đăng   giá   quá   thấp  /  quá   cao Phương pháp: Data Science Process — Sklearn + PySpark — 4+ models mỗi môi trường PHƯƠNG PHÁP Data Science Process: Crawl → Clean → EDA → Feature Engineering → Modeling → Evaluation Công  cụ : Python ( Sklearn  +  PySpark   MLlib ) — 4 models regression + 4 methods anomaly detection Kết   quả :  Gợi  ý  giá   cho   người   bán   |   Cảnh   báo  tin  bất   thường   cho   nền   tảng   |  API-ready model
+
+=== ppt/slides/slide5.xml ===
+02 Data Collection &amp; Cleaning Thu thập &amp; làm sạch dữ liệu
+
+=== ppt/slides/slide6.xml ===
+Bộ   dữ   liệu   Nhà   Tốt  –  Chọn   Lọc   cột   quan   trọng
+
+=== ppt/slides/slide7.xml ===
+Bộ dữ liệu Nhà Tốt 6 8,273 Tin đăng gốc (3 quận) 6,979 Sau cleaning &amp; FE 29 Features (sau FE) 3  Quận Bình  Thạnh ,  Gò   Vấp , Phú   Nhuận DATA PIPELINE Giai đoạn Input Output Chi tiết 01 — Loading 3 CSV (BT, GV, PN) 8,273 × 24 Gò Vấp 4,374 (52.9%) · Bình Thạnh 2,665 (32.2%) · Phú Nhuận 1,234 (14.9%) 02 — Cleaning 8,273 × 24 7,961 × 9 Drop 15  cột  missing &gt;30% · Convert  text→numeric  · Fill  NaN   pháp   lý 03 — Feature Eng. 7,961 × 9 6,979 × 29 Parse  giá   khu   vực  · 16 binary text features ·  tien_nghi_score  · log target Thuộc   tính   chính :  diện_tích ,  giá_bán ,  số_phòng_ngủ ,  loại_hình ,  quận ,  giấy_tờ_pháp_lý + 16 binary text features  trích   từ   tiêu_đề  &amp;  mô_tả   bằng  regex + 4 features  giá   khu   vực   từ   biểu   đồ   giá
+
+=== ppt/slides/slide8.xml ===
+Bộ dữ liệu Nhà Tốt 6 / 22
+
+=== ppt/slides/slide9.xml ===
+Bộ dữ liệu Nhà Tốt
+
+=== ppt/slides/slide10.xml ===
+03 EDA &amp; Feature Engineering Phân tích dữ liệu khám phá &amp; tạo features
+
+=== ppt/slides/slide11.xml ===
+EDA — Phân tích dữ liệu 6.69 tỷ Giá trung vị 142 tr/m² Đơn giá trung vị 49 m² Diện tích trung vị 8 / 22 TOP CORRELATIONS VỚI LOG(GIÁ) 1. diện_tích:  +0.732  ████████████████████ 2. số_phòng_ngủ:  +0.626  ████████████████ 3. has_thang_máy:  +0.279  ███████ 4. giá_kv_mean:  +0.277  ███████ 5. has_sân_thượng:  +0.243  ██████ 6. is_kinh_doanh:  +0.220  █████ 7. is_mặt_tiền:  +0.166  ████ KEY INSIGHTS •  Giá   bán   lệch   phải   mạnh  (skew=6.49) →  dùng  log( giá )  cho  modeling (skew=0.26) •  Phú   Nhuận   đắt   nhất  (median 7.85  tỷ ),  Gò   Vấp   rẻ   nhất  (5.95  tỷ ) •  Nhà   mặt   tiền   đắt   hơn   hẻm   rõ   rệt  ở  cả  3  quận •  has_thang_máy : delta +7.5  tỷ  — feature text  có  impact  lớn   nhất •  Phân   khúc  4-7  tỷ   chiếm   đa   số  →  thị   trường   nhà   phổ   thông • Multicollinearity:  chỉ   giá_kv_hiện_tại  ↔  giá_kv_mean  (r=0.90) •  1 6  text features trích từ tiêu đề + mô tả bằng regex (mặt tiền, hẻm xe hơi, thang máy, bán gấp...)
+
+=== ppt/slides/slide12.xml ===
+EDA — Giá theo Quận &amp; Loại hình 9 MEDIAN GIÁ THEO QUẬN × LOẠI HÌNH (TỶ VNĐ) Quận Số tin Tỷ lệ Median giá Nhà hẻm Nhà mặt phố Median DT Gò Vấp 3,702 53.0% 5.95 tỷ 5.80 tỷ 10.60 tỷ 48 m² Bình Thạnh 2,268 32.5% 6.50 tỷ 6.45 tỷ 13.75 tỷ 47 m² Phú Nhuận 1,009 14.5% 7.85 tỷ 7.60 tỷ 9.90 tỷ 52 m² PHÂN KHÚC GIÁ (PRICE SEGMENTATION) &lt; 4 tỷ:  phân khúc thấp — nhà nhỏ, hẻm sâu 4-7 tỷ:  chiếm đa số — phân khúc phổ thông 7-12 tỷ:  trung-cao — nhà mặt tiền nhỏ hoặc hẻm rộng 12-20 tỷ:  cao cấp — mặt tiền, thang máy &gt; 20 tỷ:  rất cao — outlier hoặc BĐS đặc biệt TEXT FEATURES — IMPACT LÊN GIÁ has_thang_máy: +7.5 tỷ (corr +0.279) — impact lớn nhất is_kinh_doanh: +1.9 tỷ (corr +0.220) has_sân_thượng: +1.8 tỷ (corr +0.243) is_đồng_tiền: +1.6 tỷ (corr +0.239) tien_nghi_score: tăng đều từ 5.6 tỷ (score=0) → 10.8 tỷ (score=10)
+
+=== ppt/slides/slide13.xml ===
+Feature Engineering — 29 Features 10 Nhóm Số lượng Phương pháp Ví dụ Numeric (gốc) 2 Từ dữ liệu structured diện_tích, số_phòng_ngủ Categorical 3 Từ dữ liệu structured loại_hình, giấy_tờ_pháp_lý, quận Giá khu vực 4 Parse từ biểu_đồ_giá giá_kv_mean, giá_kv_trend, giá_kv_volatility Vị trí &amp; tiếp cận 3 Regex từ tiêu_đề + mô_tả is_mặt_tiền, is_hẻm_xe_hơi, is_lô_góc Kinh tế 2 Regex từ text is_kinh_doanh, is_đồng_tiền Đặc điểm nhà 9 Regex từ text has_thang_máy, has_sân_thượng, has_gara, is_nhà_mới... Tín hiệu bất thường 2 Regex từ text is_ngộp_bank, is_bán_gấp Tổng hợp 1 Keyword count tiện_nghi_score (0-10) Target 1 np.log(giá_bán) log_giá_bán Highlight: 16 binary features trích từ text bằng regex — bổ sung ~5% accuracy cho model Drop 1,294 rows thiếu biểu_đồ_giá features → Final: 6,979 rows × 29 columns
+
+=== ppt/slides/slide14.xml ===
+Feature Engineering
+
+=== ppt/slides/slide15.xml ===
+Feature Engineering 9 / 22
+
+=== ppt/slides/slide16.xml ===
+Feature Engineering
+
+=== ppt/slides/slide17.xml ===
+Feature Engineering
+
+=== ppt/slides/slide18.xml ===
+Feature Engineering 9 / 22
+
+=== ppt/slides/slide19.xml ===
+Feature Engineering
+
+=== ppt/slides/slide20.xml ===
+Feature Engineering
+
+=== ppt/slides/slide21.xml ===
+04 Modeling — Dự đoán giá Sklearn &amp; PySpark — 4 models mỗi môi trường
+
+=== ppt/slides/slide22.xml ===
+Kết   quả  —  Sklearn  (ML  truyền   thống ) 🏆  Best Model: Random Forest — R² = 0.8455 — MAE sai lệch trung bình ~14% trên log scale Top Feature Importances (Random Forest) dien_tich 65.8% so_phong_ngu 9.3% gia_kv_mean 7.3% gia_kv_hien_tai 2.7% tien_nghi_score 1.2% 11 / 22 SO SÁNH 4 MODELS (Train/Test: 80/20, random_state=42) Model R² MAE (log) RMSE (log) MAE (tỷ) RMSE (tỷ) 🏆 Random Forest 0.846 0.140 0.197 1.076 1.908 Gradient Boosting 0.826 0.158 0.209 1.186 1.892 Linear Regression 0.734 0.187 0.258 1.540 5.591 Ridge Regression 0.734 0.188 0.258 1.541 5.612 Best Model: Random Forest — R² = 0.846 — Sai lệch trung bình 1.076 tỷ (MAE) — ~14% trên log scale
+
+=== ppt/slides/slide23.xml ===
+Kết luận — Sklearn 12 / 22
+
+=== ppt/slides/slide24.xml ===
+Kết luận — Sklearn 12 / 22
+
+=== ppt/slides/slide25.xml ===
+Kết luận — Sklearn 12 / 22
+
+=== ppt/slides/slide26.xml ===
+Kết quả — PySpark Top 5 features  quan   trọng   nhất : 1. ` dien_tich ` (36.7%) —  diện   tích   đất   là   yếu   tố   quyết   định   chính 2. ` so_phong_ngu ` (10.7%) —  số   phòng   ngủ   ảnh   hưởng   lớn 3. ` gia_kv_mean ` (8.5%) —  giá   trung   bình   khu   vực 4. ` gia_kv_hien_tai ` (6.6%) —  giá   hiện   tại   khu   vực    5. ` gia_kv_volatility ` (6.0%) —  độ   biến   động   giá   khu   vực 12 / 22 SO SÁNH 4 MODELS (Train=5,556 / Test=1,423, seed=42) Model R² MAE (log) RMSE (log) MAE (tỷ) RMSE (tỷ) Train time 🏆 Random Forest 0.820 0.159 0.214 1.303 2.856 59s GBT 0.805 0.163 0.223 1.400 3.108 315s Decision Tree 0.765 0.179 0.245 1.481 3.048 57s Linear Regression 0.685 0.211 0.283 1.674 3.128 39s Best Model: Random Forest — R² = 0.820 — Sai lệch trung bình 1.303 tỷ (MAE)
+
+=== ppt/slides/slide27.xml ===
+Kết Luận — PySpark Ưu điểm của Random Forest: - Kháng overfitting tốt hơn Decision Tree đơn - Tốc độ train nhanh hơn GBT - Ổn định với noise và outliers - Feature importance rõ ràng Khuyến nghị: - Sử dụng Random Forest làm mô hình chính cho production - Tập trung vào các features về diện tích và vị trí khi thu thập dữ liệu - Có thể ensemble Random Forest + GBT để cải thiện thêm độ chính xác Hạn chế trên môi trường PySpark: * PySpark MLlib hiện tại không tích hợp sẵn (native) các thuật toán tối tân như XGBoost hay LightGBM (phải cài đặt thư viện bên thứ 3 tương đối phức tạp trên cluster). Do đó, Random Forest và GBT là hai lựa chọn nền tảng tốt nhất. 12 / 22
+
+=== ppt/slides/slide28.xml ===
+So sánh Sklearn vs PySpark 14 RANDOM FOREST — BEST MODEL CẢ 2 MÔI TRƯỜNG Metric Sklearn RF PySpark RF Chênh lệch R² 0.846 0.820 Sklearn +2.6% MAE (log scale) 0.140 0.159 Sklearn tốt hơn RMSE (log scale) 0.197 0.214 Sklearn tốt hơn MAE (tỷ VNĐ) 1.076 tỷ 1.303 tỷ Sklearn −0.23 tỷ Top Feature diện_tích (65.8%) diện_tích (47.5%) Cùng top 1 SKLEARN — ƯU ĐIỂM • Hyperparameter tuning linh hoạt hơn • Hỗ trợ XGBoost/LightGBM native • Accuracy cao hơn trên dataset nhỏ (&lt;10K) PYSPARK — ƯU ĐIỂM • Scalable cho Big Data (millions of rows) • Distributed computing — cluster processing • Tích hợp tốt với hệ sinh thái Hadoop/Spark
+
+=== ppt/slides/slide29.xml ===
+05 Anomaly Detection Phát hiện tin đăng giá bất thường
+
+=== ppt/slides/slide30.xml ===
+Composite Score = w₁× S_resid  + w₂× S_minmax  + w₃× S_percentile  + w₄×S_ML Score ≥ 70: 🔴 Rất bất thường  |  50–70: 🟠 Bất thường  |  30–50: 🟡 Cần xem xét  |  &lt; 30: 🟢 Bình thường 4 Phương pháp phát hiện bất thường 1 Residual Z-score w₁ = 0.40 (40%) Z-score chuẩn hóa sai số dự đoán theo khu vực. Giá thực càng xa giá predict → score càng cao. 2 Min/Max Violation w₂ = 0.10 (10%) Vi phạm giá sàn/trần theo quận (P5–P95). BT: 3.1-15.9 tỷ · GV: 2.7-14.5 tỷ · PN: 3.6-15.9 tỷ 3 P10–P90 Range w₃ = 0.20 (20%) Đơn giá (triệu/m²) ngoài khoảng tin cậy thị trường theo phân khúc diện tích. 4 Isolation Forest w₄ = 0.30 (30%) Unsupervised ML — phát hiện outlier đa chiều trên tất cả features cùng lúc.
+
+=== ppt/slides/slide31.xml ===
+Kết quả Anomaly Detection — Sklearn 17 TOP 5 TIN ĐĂNG BẤT THƯỜNG NHẤT Quận DT (m²) Giá thực Giá predict Score Loại Gò Vấp 106 142.0 tỷ 53.2 tỷ 81.4 Quá cao Gò Vấp 48 57.9 tỷ 23.0 tỷ 62.2 Quá cao Gò Vấp 18 0.89 tỷ 2.7 tỷ 47.8 Quá thấp Bình Thạnh 26 12.0 tỷ 5.7 tỷ 45.0 Quá cao Gò Vấp 96 26.0 tỷ 12.9 tỷ 45.0 Quá cao GIÁ CAO BẤT THƯỜNG Nhà 106m² Gò Vấp: 142 tỷ (predict 53.2 tỷ) → Score 81.4 — tất cả 4 signals đều cao Khả năng: thổi giá hoặc lỗi nhập liệu GIÁ THẤP BẤT THƯỜNG Nhà 18m² Gò Vấp: 0.89 tỷ (predict 2.7 tỷ) → Score 47.8 — giấy tờ viết tay Khả năng: nhà nát, dính pháp lý, bán tháo
+
+=== ppt/slides/slide32.xml ===
+Kết   quả   phát   hiện   bất   thường  -  Sklearn 15 / 22 Top 10 tin  đăng   bất   thường   nhất
+
+=== ppt/slides/slide33.xml ===
+Kết luận - Sklearn 15 / 22
+
+=== ppt/slides/slide34.xml ===
+Kết luận - Sklearn 15 / 22
+
+=== ppt/slides/slide35.xml ===
+Kết   quả   phát   hiện   bất   thường  -  pyspark Top 10 tin  đăng   bất   thường   nhất 15 / 22
+
+=== ppt/slides/slide36.xml ===
+Kết   quả   Phát   hiện   bất   thường   —  PySpark 18 PHÂN BỐ ANOMALY SCORE (6,979 tin đăng) Mức độ Score Số tin Tỷ lệ Hành động Bình thường &lt; 30 6,364 91.2% Không cần xử lý Cần xem xét 30-50 444 6.4% Review thủ công Bất thường 50-70 127 1.8% Cảnh báo người dùng Rất bất thường ≥ 70 44 0.6% Tạm ẩn / liên hệ xác minh PHÂN BỐ THEO QUẬN (Score ≥ 50) Quận Quá cao Quá thấp Tổng bất thường Bình Thạnh 59 15 74 Gò Vấp 39 19 58 Phú Nhuận 27 12 39 Tổng cộng 125 46 171 (2.5%) TOP ANOMALY Gò Vấp 106m² mặt tiền Giá thực: 142.0 tỷ Giá predict: 92.37 tỷ Score: 96.0 (max = 100) S_resid=1.0 · S_minmax=1.0 · S_pctl=1.0 · S_ML=0.87
+
+=== ppt/slides/slide37.xml ===
+Kết luận - pyspark 15 / 22
+
+=== ppt/slides/slide38.xml ===
+Kết luận - pyspark 15 / 22
+
+=== ppt/slides/slide39.xml ===
+06 Kết luận &amp; Triển khai Tổng hợp kết quả &amp; hướng phát triển
+
+=== ppt/slides/slide40.xml ===
+Tổng hợp kết quả 20 Sklearn PySpark Best Model Random Forest Random Forest R² 0.846 0.820 MAE (log scale) 0.140 0.159 RMSE (log scale) 0.197 0.214 MAE (tỷ VNĐ) 1.076 tỷ 1.303 tỷ Top Feature diện_tích (65.8%) diện_tích (47.5%) Anomaly detected ~5% dataset 171 tin (2.5%) KẾT LUẬN CHÍNH • Random Forest tốt nhất cả 2 môi trường (R² &gt; 0.82) • Feature quan trọng nhất: diện_tích, số_phòng_ngủ, giá_kv • 16 text features từ regex bổ sung ~5% accuracy • Composite Score (4 methods) phát hiện ~2.5-5% tin bất thường • 80% anomaly là giá CAO bất thường (thổi giá / lỗi nhập) ĐIỂM NỔI BẬT CỦA DỰ ÁN ✓ End-to-end pipeline: Crawl → Clean → EDA → Feature Engineering → Modeling → Anomaly Detection ✓ So sánh 2 môi trường (Sklearn vs PySpark) — 4 models mỗi môi trường — đánh giá đa chiều ✓ Tự crawl dữ liệu từ nhatot.com (anti-bot bypass, TLS fingerprint) — có thể mở rộng 24 quận
+
+=== ppt/slides/slide41.xml ===
+Ứng dụng thực tế &amp; Hướng phát triển 21 CHO NGƯỜI BÁN Gợi ý giá đăng bán hợp lý dựa trên diện tích, vị trí, tiện nghi &amp; giá khu vực CHO NGƯỜI MUA Cảnh báo tin đăng bất thường Quá rẻ → khả năng scam Quá đắt → thổi giá / lỗi data CHO NHÀ TỐT Tự động kiểm duyệt tin đăng Score ≥70 → tạm ẩn + xác minh Score 50-70 → cảnh báo nội bộ HẠN CHẾ • Dữ liệu chỉ 3 quận (6,979 tin) — chưa đại diện toàn TP.HCM • Chưa có thông tin GPS → không phân tích không gian • Thiếu features: năm xây, hướng nhà, tầng, view • Dữ liệu tĩnh — chưa có cập nhật realtime HƯỚNG PHÁT TRIỂN • Mở rộng 24 quận TP.HCM (crawler đã sẵn sàng) • Kết hợp geocoding (GPS) → mô hình không gian • Triển khai API/web app cho người dùng cuối • Thử nghiệm XGBoost, LightGBM, Neural Network • Cập nhật dữ liệu định kỳ → tracking xu hướng giá
+
+=== ppt/slides/slide42.xml ===
+07 Bonus: Crawl Data Tự thu thập dữ liệu từ nhatot.com
+
+=== ppt/slides/slide43.xml ===
+Tự crawl dữ liệu từ nhatot.com — 24 quận TP.HCM — Điểm cộng Anti-blocking Features TLS Fingerprint curl_cffi impersonate Chrome 131 — bypass TLS detection Session Warmup Truy cập trang chủ trước để lấy cookies tự nhiên Random Delays 2-4 giây giữa requests, exponential backoff khi bị 403/429 Retry Logic Max 3 retries với backoff, dừng sau 3 trang trống liên tiếp KIẾN TRÚC CRAWLER Bước Công nghệ Chi tiết 1. TLS Bypass curl_cffi Giả lập TLS fingerprint Chrome 131 — bypass anti-bot 2. Session Warmup requests.Session Truy cập trang chủ trước → lấy cookies tự nhiên 3. Web Scrape BeautifulSoup Parse HTML listing → extract URLs chi tiết → parse từng tin 4. Fallback API gateway.chotot.com API backup nếu web scrape thất bại 5. Anti-blocking Random delays 2-4s giữa pages, exponential backoff khi 403/429 6. Export pandas → CSV 1 file/quận + all_districts_combined.csv Data Crawling —  Kiến   trúc  &amp;  Kỹ   thuật
+
+=== ppt/slides/slide44.xml ===
+Data Crawling — Quy  trình  &amp;  Kết   quả Quy trình crawl mỗi quận: 1. Build URL: nhatot.com/ mua -ban- bat-dong- san -{slug} - tp -ho-chi- minh ?page={N} 2. Web Scrape: Parse HTML listing →  Lấy  URLs chi  tiết → Extract  từng  tin 3. Fallback API: gateway.chotot.com /v1/public  nếu web scrape  thất   bại 4. Parse JSON/HTML: Giá  ( VNĐ→tỷ ) DT, PN,  tầng Địa   chỉ ,  mô   tả Output: File Mô tả Format quan-{ten-quan}.csv 1 file riêng cho mỗi quận (23 columns) CSV (UTF-8) all_districts_combined.csv Gộp tất cả quận — sẵn sàng cho pipeline CSV (UTF-8) KẾT QUẢ CRAWL 59,590 records từ 22 quận TP.HCM Max 300 pages/quận (~20 ads/page) Missing: giá_bán 2.5%, số_phòng_ngủ 23.2% TẠI SAO TỰ CRAWL? Data có sẵn chỉ 3 quận (8,273 tin) Crawler cho phép mở rộng 24 quận, realtime Kiểm soát chất lượng &amp; tùy chỉnh features
+
+=== ppt/slides/slide45.xml ===
+Crawl data  bằng  python
+
+=== ppt/slides/slide46.xml ===
+Phân   công   công   việc Dự đoán giá &amp; Phát hiện bất thường giá nhà ở Công việc Quang Quân Business Objective ✅ ✅ Data Understanding / Cleaning ✅ ✅ EDA &amp; Feature Engineering ✅ ✅ Modeling — Dự đoán giá (Sklearn) ✅ Modeling — Dự đoán giá (PySpark) ✅ Anomaly Detection (Sklearn) ✅ Anomaly Detection ( PySpark ) ✅ ⭐ Crawl data ( cộng   điểm ) ✅ ✅
+
+=== ppt/slides/slide47.xml ===
+THÀNH VIÊN NHÓM  9 DL07 - K311 Đoàn Nhật Quang 🎓  Ngành   học   :  Công  nghệ   t hông  tin 🏢  Công  việc    :  Technical Architect  tại   Cyberlogitec  Vietnam 🎓  Profile         :   https://www.linkedin.com/in/dnq-httt/ Phan Ngọc Minh Quân 🎓  Ngành   học   :   Khoa  học   máy   tính 🏢  Công  việc    :  Technical Architect  tại   Cyberlogitec  Vietnam                               -  Giảng   viên   Đại   học   Huflit 🎓  Profile         :   https://www.linkedin.com/in/phanquan111
+
+=== ppt/slides/slide48.xml ===
+01 Lý do chọn học khóa học Data Science and Machine Learning Certificate 💡 ▸  Mở rộng tầm nhìn kiến trúc Trong kỷ nguyên dẫn dắt bởi dữ liệu, việc chỉ nắm vững các thiết kế hệ thống hay xây dựng backend hiệu năng cao là chưa đủ. Em chọn khóa học này để xóa mờ ranh giới giữa Software Architecture truyền thống và Data Engineering, từ đó thiết kế ra những hệ thống thông minh hơn. ⚙️ ▸  Hoàn thiện hệ sinh thái công nghệ Chương trình có học phần Dữ liệu lớn với PySpark cực kỳ phù hợp với định hướng của em. Khóa học là mảnh ghép giúp em hoàn thiện bức tranh toàn cảnh: từ việc thiết kế luồng dữ liệu thô trên môi trường cloud, đến việc nhúng trực tiếp các mô hình phân tích dự báo vào sâu bên trong lõi kiến trúc của sản phẩm công nghệ.
+
+=== ppt/slides/slide49.xml ===
+02 Kinh nghiệm rút ra từ khóa học Những bài học giá trị nhất từ hành trình học tập 🔄 ▸  Chuyển dịch tư duy luồng dữ liệu (Data Pipeline) Khóa học đã giúp em có sự thay đổi về tư duy, hiểu sâu sắc hơn về vòng đời dữ liệu — cách làm sạch, chuẩn hóa và xử lý dữ liệu phân tán để các mô hình Machine Learning có thể hoạt động trơn tru và chính xác nhất. ⚙️ ▸  Chuẩn hóa quy trình tích hợp và vận hành (MLOps) Kinh nghiệm quý giá nhất là việc nhìn nhận các mô hình AI không phải là những thành phần rời rạc. Khóa học giúp em hoạch định được chiến lược tích hợp mô hình học máy vào quy trình phát triển và triển khai liên tục (CI/CD) hiện tại của doanh nghiệp, đảm bảo sự đồng bộ và tối ưu hiệu suất giữa khối phát triển phần mềm và khối khoa học dữ liệu.
+
+=== ppt/slides/slide50.xml ===
+CẢM ƠN cô và các bạn! DL07 — K311 — Đoàn Nhật Quang – Phan Ngọc Minh Quân Trường ĐH Khoa Học Tự Nhiên TP.HCM — Trung Tâm Tin Học
+

@@ -251,12 +251,14 @@ posts_page = st.Page("pages/posts.py", title="Danh sách tin đăng", icon="📋
 detail_page = st.Page("pages/post_detail.py", title="Chi tiết tin đăng", icon="🔎")
 data_page = st.Page("pages/data_understanding.py", title="Data & EDA", icon="📁")
 crawl_page = st.Page("pages/data_crawling.py", title="Data Crawling", icon="🕷️")
+intro_page = st.Page("pages/introduction.py", title="Giới thiệu", icon="👋")
 pg = st.navigation({
     "📋 Tổng quan": [home_page, business_page, task_page],
     "🔮 Dự đoán & Phát hiện": [prediction_page],
     "📰 Dữ liệu": [posts_page, detail_page],
     "📈 Kết quả & Báo cáo": [data_page, model_page, anomaly_page],
     "🕷️ Bonus": [crawl_page],
+    "👋 Về chúng tôi": [intro_page],
 })
 
 pg.run()
