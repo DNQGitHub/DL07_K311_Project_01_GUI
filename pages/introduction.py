@@ -175,7 +175,13 @@ def main():
     # ══════════════════════════════════════════════
     # GIẢNG VIÊN HƯỚNG DẪN
     # ══════════════════════════════════════════════
-    st.markdown("""
+    phuong_img_b64 = get_image_base64("assets/phuong.png")
+    if phuong_img_b64:
+        phuong_img_tag = f'<img src="data:image/png;base64,{phuong_img_b64}" style="width:60px; height:60px; min-width:60px; border-radius:14px; object-fit:cover; border:2px solid #f59e0b; box-shadow:0 4px 10px rgba(245,158,11,0.2);">'
+    else:
+        phuong_img_tag = '<div style="width:52px; height:52px; min-width:52px; background: rgba(245,158,11,0.12); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:26px;">👩‍🏫</div>'
+
+    st.markdown(f"""
     <div style="
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
         padding: 24px 28px;
@@ -187,13 +193,7 @@ def main():
         gap: 20px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     ">
-        <div style="
-            width:52px; height:52px; min-width:52px;
-            background: rgba(245,158,11,0.12);
-            border-radius:14px;
-            display:flex; align-items:center; justify-content:center;
-            font-size:26px;
-        ">👩‍🏫</div>
+        {phuong_img_tag}
         <div>
             <p style="color:#94a3b8; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 4px 0;">Giảng viên hướng dẫn</p>
             <h3 style="color:#f8fafc; margin:0; font-size:20px; font-weight:700;">Thạc sỹ Khuất Thùy Phương</h3>
