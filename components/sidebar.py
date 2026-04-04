@@ -43,6 +43,10 @@ def display():
         st.page_link(label="🔍 Kết quả bất thường", page="pages/anomaly_results.py")
 
         st.divider()
+        st.markdown("**🕷️ Bonus**")
+        st.page_link(label="🕷️ Data Crawling", page="pages/data_crawling.py")
+
+        st.divider()
         st.markdown(
             "<div style='text-align:center; padding: 12px 0;'>"
             "<p style='font-size: 11px; font-weight: 600; color: #64748b !important; margin: 0 0 6px 0; letter-spacing: 0.05em;'>TEAM 9</p>"

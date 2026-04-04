@@ -245,11 +245,13 @@ anomaly_page = st.Page("pages/anomaly_results.py", title="Kết quả bất thư
 posts_page = st.Page("pages/posts.py", title="Danh sách tin đăng", icon="📋")
 detail_page = st.Page("pages/post_detail.py", title="Chi tiết tin đăng", icon="🔎")
 data_page = st.Page("pages/data_understanding.py", title="Data & EDA", icon="📁")
+crawl_page = st.Page("pages/data_crawling.py", title="Data Crawling", icon="🕷️")
 pg = st.navigation({
     "📋 Tổng quan": [home_page, business_page, task_page],
     "🔮 Dự đoán & Phát hiện": [prediction_page],
     "📰 Dữ liệu": [posts_page, detail_page],
     "📈 Kết quả & Báo cáo": [data_page, model_page, anomaly_page],
+    "🕷️ Bonus": [crawl_page],
 })
 
 pg.run()
