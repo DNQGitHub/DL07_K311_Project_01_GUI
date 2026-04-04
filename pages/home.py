@@ -1,78 +1,100 @@
 import streamlit as st
 import components.sidebar as sidebar
-from utils.helpers import load_data, train_models, get_notebook_sklearn_results
+from utils.helpers import load_data, train_models, get_notebook_sklearn_results, get_pyspark_results
 
 def main():
     sidebar.display()
-    
-    # Hero section
+
+    # ── Hero Banner ──
     st.markdown("""
-    <div style="background: linear-gradient(135deg, #0a1628 0%, #1a3a5c 50%, #2d6a4f 100%); 
-                padding: 40px; border-radius: 16px; margin-bottom: 24px;">
-        <h1 style="color: #fff; margin: 0; font-size: 36px;">🏠 Dự đoán giá nhà & Phát hiện bất thường</h1>
-        <p style="color: #a0c4ff; font-size: 18px; margin-top: 8px;">
-            Nền tảng Nhà Tốt — Dữ liệu 3 quận TP.HCM: Bình Thạnh, Gò Vấp, Phú Nhuận
+    <div class="hero-banner">
+        <h1>Du doan gia nha & Phat hien bat thuong</h1>
+        <p class="subtitle">
+            Nen tang Nha Tot — Du lieu 3 quan TP.HCM: Binh Thanh, Go Vap, Phu Nhuan
         </p>
-        <p style="color: #ccc; font-size: 14px; margin-top: 4px;">
-            DL07 · K311 · Team 9 — ĐH Khoa Học Tự Nhiên TP.HCM
-        </p>
-        <p style="color: #ccc; font-size: 14px; margin-top: 4px;">
-            GVHD: Thạc sỹ Khuất Thùy Phương
-        </p>
-        <p style="color: #ccc; font-size: 14px; margin-top: 4px;">
-            Đoàn Nhật Quang – Phan Ngọc Minh Quân
-        </p>
+        <p class="meta">DL07 · K311 · Team 9 — DH Khoa Hoc Tu Nhien TP.HCM</p>
+        <p class="meta">GVHD: Thac sy Khuat Thuy Phuong </p>
+        <p class="meta">Thực hiện: Doan Nhat Quang — Phan Ngoc Minh Quan</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Stats overview - use actual notebook results
-    df = load_data()
-    models = train_models()
+
+    # ── Key Metrics Row ──
     notebook_results = get_notebook_sklearn_results()
-    best_r2 = max(r["R²"] for r in notebook_results)
-    
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        st.metric("📊 Tổng tin đăng (thực tế)", "6,979")
-    with col2:
-        st.metric("🏘️ Số quận", "3")
-    with col3:
-        st.metric("🤖 Models đã train", "8", "4 Sklearn + 4 PySpark")
-    with col4:
-        st.metric("🎯 Best R² (Sklearn)", f"{best_r2:.4f}")
-    with col5:
-        st.metric("🎯 Best R² (PySpark)", "0.8201")
-    
+    pyspark_results = get_pyspark_results()
+    best_sklearn_r2 = max(r["R²"] for r in notebook_results)
+    best_pyspark_r2 = max(r["R²"] for r in pyspark_results)
+
+    st.markdown("""
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 28px;">
+        <div class="stat-box">
+            <div class="stat-icon">📊</div>
+            <div class="stat-label">Tong tin dang</div>
+            <div class="stat-value">6,979</div>
+            <div class="stat-detail">Du lieu thuc te</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon">🏘️</div>
+            <div class="stat-label">So quan</div>
+            <div class="stat-value">3</div>
+            <div class="stat-detail">Binh Thanh · Go Vap · Phu Nhuan</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon">🤖</div>
+            <div class="stat-label">Models da train</div>
+            <div class="stat-value">8</div>
+            <div class="stat-detail">4 Sklearn + 4 PySpark</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-label">Best R² Sklearn</div>
+            <div class="stat-value" style="color: #16a34a;">""" + f"{best_sklearn_r2:.4f}" + """</div>
+            <div class="stat-detail">Random Forest</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-label">Best R² PySpark</div>
+            <div class="stat-value" style="color: #2563eb;">""" + f"{best_pyspark_r2:.4f}" + """</div>
+            <div class="stat-detail">Random Forest</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.divider()
-    
-    # Two columns: project overview + features
+
+    # ── Two columns: Project overview + Results ──
     col_left, col_right = st.columns(2)
-    
+
     with col_left:
         st.markdown("### 📋 Tổng quan dự án")
         st.markdown("""
-        Dự án xây dựng hệ thống **dự đoán giá nhà** và **phát hiện bất thường** 
+        Dự án xây dựng hệ thống **dự đoán giá nhà** và **phát hiện bất thường**
         từ dữ liệu tin đăng bất động sản trên nền tảng Nhà Tốt (nhatot.com).
-        
-        **Hai bài toán chính:**
         """)
 
         st.markdown("""
-        #### 📌 Bài toán 1: Dự đoán giá nhà
-        - **Sklearn (4 models):** Random Forest, Gradient Boosting, Linear Regression, Ridge
-        - **PySpark (4 models):** Random Forest, GBT, Decision Tree, Linear Regression
-        - **Metrics:** MAE, RMSE, R² — đánh giá trên tập test (20%)
-        - **Best Model:** Random Forest Sklearn (R² = 0.846, MAE = 0.140)
-        """)
-        
+        <div class="info-card info-card-blue">
+            <h4 style="color: #1d4ed8;">📌 Bài toán 1: Dự đoán giá nhà</h4>
+            <ul style="margin: 8px 0; padding-left: 20px; color: #334155;">
+                <li><strong>Sklearn (4 models):</strong> Random Forest, Gradient Boosting, Linear Regression, Ridge</li>
+                <li><strong>PySpark (4 models):</strong> Random Forest, GBT, Decision Tree, Linear Regression</li>
+                <li><strong>Metrics:</strong> MAE, RMSE, R² — đánh giá trên tập test (20%)</li>
+                <li><strong>Best Model:</strong> Random Forest Sklearn (R² = 0.846, MAE = 0.140)</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
         st.markdown("""
-        #### 📌 Bài toán 2: Phát hiện bất thường
-        - **4 phương pháp kết hợp:** Residual Z-Score (35%), Isolation Forest (30%), 
-          Percentile P10-P90 (20%), Min/Max (15%)
-        - **Phân tích theo phân khúc** (Quận × Loại hình)
-        - **Anomaly Score** 0-100 → phân loại 4 mức
-        """)
-        
+        <div class="info-card info-card-red">
+            <h4 style="color: #dc2626;">📌 Bài toán 2: Phát hiện bất thường</h4>
+            <ul style="margin: 8px 0; padding-left: 20px; color: #334155;">
+                <li><strong>4 phương pháp kết hợp:</strong> Residual Z-Score (40%), Isolation Forest (30%),
+                  Percentile P10-P90 (20%), Min/Max (10%)</li>
+                <li><strong>Phân tích theo phân khúc</strong> (Quận × Loại hình)</li>
+                <li><strong>Anomaly Score</strong> 0-100 → phân loại 4 mức</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
         st.markdown("### 🔧 Công nghệ sử dụng")
         st.markdown("""
         | Thành phần | Công nghệ |
@@ -84,22 +106,36 @@ def main():
         | **GUI** | Streamlit |
         | **Data** | 6,979 BĐS, 29 features |
         """)
-    
+
     with col_right:
         st.markdown("### 📊 Bảng tổng hợp kết quả Sklearn")
-        
+
         import pandas as pd
         df_results = pd.DataFrame(notebook_results)
         df_results.columns = ["Mô hình", "MAE (log)", "RMSE (log)", "R²", "MAE (tỷ)", "RMSE (tỷ)"]
         st.dataframe(
             df_results.style
-            .highlight_max(subset=["R²"], color="#2ecc71", props="font-weight: bold")
-            .highlight_min(subset=["MAE (log)"], color="#2ecc71", props="font-weight: bold")
+            .highlight_max(subset=["R²"], color="#bbf7d0", props="font-weight: bold")
+            .highlight_min(subset=["MAE (log)"], color="#bbf7d0", props="font-weight: bold")
             .format({"R²": "{:.4f}", "MAE (log)": "{:.4f}", "RMSE (log)": "{:.4f}", "MAE (tỷ)": "{:.3f}", "RMSE (tỷ)": "{:.3f}"}),
             use_container_width=True,
             hide_index=True,
         )
 
+        st.markdown("### ⚡ Bảng tổng hợp kết quả PySpark")
+        df_pyspark = pd.DataFrame(pyspark_results)
+        df_pyspark_display = df_pyspark[["Model", "R²", "MAE_log", "RMSE_log", "MAE_tỷ", "RMSE_tỷ"]].copy()
+        df_pyspark_display.columns = ["Mô hình", "R²", "MAE (log)", "RMSE (log)", "MAE (tỷ)", "RMSE (tỷ)"]
+        st.dataframe(
+            df_pyspark_display.style
+            .highlight_max(subset=["R²"], color="#bfdbfe", props="font-weight: bold")
+            .highlight_min(subset=["MAE (log)"], color="#bfdbfe", props="font-weight: bold")
+            .format({"R²": "{:.4f}", "MAE (log)": "{:.4f}", "RMSE (log)": "{:.4f}", "MAE (tỷ)": "{:.3f}", "RMSE (tỷ)": "{:.3f}"}),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        df = load_data()
         st.markdown("### 📊 Phân bố dữ liệu (Demo)")
         quan_counts = df["quan"].value_counts()
         st.bar_chart(quan_counts, color="#1a73e8")
@@ -115,24 +151,58 @@ def main():
     
     st.divider()
 
-    # Quick navigation
+    # ── Quick Navigation ──
     st.markdown("### 🚀 Bắt đầu sử dụng")
+
+    st.markdown("""
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 16px;">
+        <div class="nav-card">
+            <div class="nav-icon">📁</div>
+            <h4>Data & EDA</h4>
+            <p>Data pipeline, thống kê, feature engineering</p>
+        </div>
+        <div class="nav-card">
+            <div class="nav-icon">🔮</div>
+            <h4>Dự đoán giá</h4>
+            <p>Nhập thông tin nhà, nhận giá từ 4 models</p>
+        </div>
+        <div class="nav-card">
+            <div class="nav-icon">📈</div>
+            <h4>So sánh Models</h4>
+            <p>Kết quả 8 models trên 2 nền tảng</p>
+        </div>
+        <div class="nav-card">
+            <div class="nav-icon">🔍</div>
+            <h4>Bất thường</h4>
+            <p>Phương pháp & kết quả phát hiện giá bất thường</p>
+        </div>
+        <div class="nav-card">
+            <div class="nav-icon">📋</div>
+            <h4>Tin đăng</h4>
+            <p>Duyệt, lọc tin và xem chi tiết</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     n1, n2, n3, n4, n5 = st.columns(5)
     with n1:
-        st.info("📁 **Data & EDA**\n\nData pipeline, thống kê, feature engineering.")
         st.page_link("pages/data_understanding.py", label="→ Data & EDA", icon="📁")
     with n2:
-        st.info("📝 **Dự đoán giá**\n\nNhập thông tin nhà, nhận giá từ models.")
         st.page_link("pages/price_prediction.py", label="→ Dự đoán", icon="🔮")
     with n3:
-        st.success("📈 **So sánh Models**\n\nKết quả 8 models trên 2 nền tảng.")
         st.page_link("pages/model_comparison.py", label="→ Models", icon="📊")
     with n4:
-        st.warning("🔍 **Bất thường**\n\nXem phương pháp và kết quả phát hiện giá bất thường.")
         st.page_link("pages/anomaly_results.py", label="→ Anomaly", icon="🔍")
     with n5:
-        st.info("📋 **Tin đăng**\n\nDuyệt, lọc tin và xem chi tiết.")
         st.page_link("pages/posts.py", label="→ Tin đăng", icon="📰")
+
+    # ── Footer ──
+    st.markdown("""
+    <div class="footer-text">
+        DL07 — K311 — Team 9 &nbsp;|&nbsp; ĐH Khoa Học Tự Nhiên TP.HCM &nbsp;|&nbsp;
+        GVHD: ThS. Khuất Thùy Phương
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

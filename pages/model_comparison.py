@@ -20,6 +20,12 @@ from utils.helpers import (
     get_notebook_feature_importances,
 )
 
+PLOTLY_LAYOUT = dict(
+    plot_bgcolor="#fafafa",
+    paper_bgcolor="#ffffff",
+    font=dict(family="Inter"),
+)
+
 
 def render():
     sidebar.display()
@@ -31,7 +37,6 @@ def render():
 
     st.divider()
 
-    # ────────── Tab layout ──────────
     tab1, tab2, tab3, tab4 = st.tabs([
         "📈 Sklearn Results",
         "⚡ PySpark Results",
@@ -39,55 +44,42 @@ def render():
         "🏆 Kết luận & Đề xuất",
     ])
 
-    # ==================================================
-    # TAB 1: SKLEARN RESULTS
-    # ==================================================
     with tab1:
         render_sklearn_tab()
-
-    # ==================================================
-    # TAB 2: PYSPARK RESULTS
-    # ==================================================
     with tab2:
         render_pyspark_tab()
-
-    # ==================================================
-    # TAB 3: FEATURE IMPORTANCE
-    # ==================================================
     with tab3:
         render_feature_importance_tab()
-
-    # ==================================================
-    # TAB 4: CONCLUSION
-    # ==================================================
     with tab4:
         render_conclusion_tab()
 
 
 def render_sklearn_tab():
     st.markdown("### 🐍 Kết quả mô hình Sklearn (4 models)")
-    st.info("""
-    **Dữ liệu**: 6,979 tin đăng BĐS tại 3 quận (Bình Thạnh, Gò Vấp, Phú Nhuận)  
-    **Target**: `log_gia_ban` (giá bán tính theo log — đơn vị gốc: tỷ VNĐ)  
-    **Split**: 80% train / 20% test  
-    **Features**: 24 thuộc tính (diện tích, vị trí, tiện nghi, giá khu vực, ...)
-    """)
+
+    st.markdown("""
+    <div class="info-card info-card-blue">
+        <p style="color: #334155; margin: 0;">
+            <strong>Dữ liệu:</strong> 6,979 tin đăng BĐS tại 3 quận &nbsp;|&nbsp;
+            <strong>Target:</strong> <code>log_gia_ban</code> &nbsp;|&nbsp;
+            <strong>Split:</strong> 80/20 &nbsp;|&nbsp;
+            <strong>Features:</strong> 24 thuộc tính
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     results = get_notebook_sklearn_results()
     df = pd.DataFrame(results)
 
-    # Styled table
     col1, col2 = st.columns([3, 2])
     with col1:
         st.markdown("#### 📋 Bảng metrics (trên tập Test)")
         styled_df = df.copy()
         styled_df.columns = ["Mô hình", "MAE (log)", "RMSE (log)", "R²", "MAE (tỷ VNĐ)", "RMSE (tỷ VNĐ)"]
-
-        # Highlight best
         st.dataframe(
             styled_df.style
-            .highlight_min(subset=["MAE (log)", "RMSE (log)", "MAE (tỷ VNĐ)"], color="#2ecc71", props="font-weight: bold")
-            .highlight_max(subset=["R²"], color="#2ecc71", props="font-weight: bold")
+            .highlight_min(subset=["MAE (log)", "RMSE (log)", "MAE (tỷ VNĐ)"], color="#bbf7d0", props="font-weight: bold")
+            .highlight_max(subset=["R²"], color="#bbf7d0", props="font-weight: bold")
             .format({"R²": "{:.4f}", "MAE (log)": "{:.4f}", "RMSE (log)": "{:.4f}", "MAE (tỷ VNĐ)": "{:.3f}", "RMSE (tỷ VNĐ)": "{:.3f}"}),
             use_container_width=True,
             hide_index=True,
@@ -96,15 +88,19 @@ def render_sklearn_tab():
     with col2:
         st.markdown("#### 🏅 Xếp hạng")
         rankings = [
-            ("🥇", "Random Forest", "R² = 0.846", "Tốt nhất"),
-            ("🥈", "Gradient Boosting", "R² = 0.826", "Thứ 2"),
-            ("🥉", "Linear Regression", "R² = 0.734", "Thứ 3"),
-            ("4️⃣", "Ridge Regression", "R² = 0.734", "Thứ 4"),
+            ("🥇", "Random Forest", "R² = 0.846", "#16a34a"),
+            ("🥈", "Gradient Boosting", "R² = 0.826", "#2563eb"),
+            ("🥉", "Linear Regression", "R² = 0.734", "#d97706"),
+            ("4️⃣", "Ridge Regression", "R² = 0.734", "#64748b"),
         ]
-        for icon, name, score, rank in rankings:
-            st.markdown(f"**{icon} {name}** — {score} ({rank})")
+        for icon, name, score, color in rankings:
+            st.markdown(f"""
+            <div style="padding: 8px 12px; margin: 4px 0; border-radius: 8px; border-left: 3px solid {color}; background: #f8fafc;">
+                <strong>{icon} {name}</strong> <span style="color: {color}; float: right;">{score}</span>
+            </div>
+            """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.divider()
 
     # Charts
     st.markdown("#### 📊 Biểu đồ so sánh")
@@ -112,26 +108,22 @@ def render_sklearn_tab():
 
     with col_a:
         fig_r2 = px.bar(
-            df, x="Model", y="R²",
-            color="R²",
+            df, x="Model", y="R²", color="R²",
             color_continuous_scale="Greens",
-            title="R² Score (càng cao càng tốt)",
-            text="R²",
+            title="R² Score (càng cao càng tốt)", text="R²",
         )
         fig_r2.update_traces(texttemplate='%{text:.4f}', textposition='outside')
-        fig_r2.update_layout(yaxis_range=[0.5, 1.0], showlegend=False, height=400, coloraxis_showscale=False)
+        fig_r2.update_layout(yaxis_range=[0.5, 1.0], showlegend=False, height=400, coloraxis_showscale=False, **PLOTLY_LAYOUT)
         st.plotly_chart(fig_r2, use_container_width=True)
 
     with col_b:
         fig_mae = px.bar(
-            df, x="Model", y="MAE_log",
-            color="MAE_log",
+            df, x="Model", y="MAE_log", color="MAE_log",
             color_continuous_scale="Reds_r",
-            title="MAE trên log-scale (càng thấp càng tốt)",
-            text="MAE_log",
+            title="MAE trên log-scale (càng thấp càng tốt)", text="MAE_log",
         )
         fig_mae.update_traces(texttemplate='%{text:.4f}', textposition='outside')
-        fig_mae.update_layout(yaxis_range=[0, 0.3], showlegend=False, height=400, coloraxis_showscale=False)
+        fig_mae.update_layout(yaxis_range=[0, 0.3], showlegend=False, height=400, coloraxis_showscale=False, **PLOTLY_LAYOUT)
         st.plotly_chart(fig_mae, use_container_width=True)
 
     # Radar chart
@@ -139,7 +131,7 @@ def render_sklearn_tab():
     categories = ["R² (×100)", "MAE_log (×100, ngược)", "RMSE_log (×100, ngược)"]
 
     fig_radar = go.Figure()
-    colors = ["#27ae60", "#3498db", "#e74c3c", "#f39c12"]
+    colors = ["#16a34a", "#2563eb", "#dc2626", "#f59e0b"]
     for i, row in df.iterrows():
         r_values = [
             row["R²"] * 100,
@@ -149,19 +141,17 @@ def render_sklearn_tab():
         fig_radar.add_trace(go.Scatterpolar(
             r=r_values + [r_values[0]],
             theta=categories + [categories[0]],
-            fill='toself',
-            name=row["Model"],
-            line_color=colors[i],
-            opacity=0.6,
+            fill='toself', name=row["Model"],
+            line_color=colors[i], opacity=0.6,
         ))
     fig_radar.update_layout(
         polar=dict(radialaxis=dict(visible=True, range=[60, 100])),
         showlegend=True, height=450,
         title="Radar — So sánh đa chiều (Sklearn)",
+        **PLOTLY_LAYOUT,
     )
     st.plotly_chart(fig_radar, use_container_width=True)
 
-    # Interpretation
     st.markdown("#### 💡 Phân tích kết quả Sklearn")
     st.success("""
     **🏆 Random Forest đạt hiệu năng vượt trội:**
@@ -181,12 +171,17 @@ def render_sklearn_tab():
 
 def render_pyspark_tab():
     st.markdown("### ⚡ Kết quả mô hình PySpark (4 models)")
-    st.info("""
-    **Nền tảng**: Apache Spark MLlib (distributed computing)  
-    **Dữ liệu**: 6,979 tin đăng (xử lý qua PySpark DataFrame)  
-    **Target**: `log_gia_ban`  
-    **Lưu ý**: PySpark được chạy offline trên notebook — kết quả hiển thị dưới dạng báo cáo
-    """)
+
+    st.markdown("""
+    <div class="info-card info-card-blue">
+        <p style="color: #334155; margin: 0;">
+            <strong>Nền tảng:</strong> Apache Spark MLlib &nbsp;|&nbsp;
+            <strong>Dữ liệu:</strong> 6,979 tin đăng &nbsp;|&nbsp;
+            <strong>Target:</strong> <code>log_gia_ban</code> &nbsp;|&nbsp;
+            <em>PySpark được chạy offline trên notebook</em>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     results = get_pyspark_results()
     df = pd.DataFrame(results)
@@ -194,12 +189,12 @@ def render_pyspark_tab():
     col1, col2 = st.columns([3, 2])
     with col1:
         st.markdown("#### 📋 Bảng metrics PySpark")
-        styled_df = df.drop(columns=["Train_time_sec"], errors="ignore").copy()
-        styled_df.columns = ["Mô hình", "R²", "RMSE (log)", "MAE (log)", "MAE (tỷ VNĐ)", "RMSE (tỷ VNĐ)", "Thời gian train"]
+        styled_df = df[["Model", "R²", "RMSE_log", "MAE_log", "MAE_tỷ", "RMSE_tỷ", "Train_time"]].copy()
+        styled_df.columns = ["Mô hình", "R²", "RMSE (log)", "MAE (log)", "MAE (tỷ VNĐ)", "RMSE (tỷ VNĐ)", "Thời gian"]
         st.dataframe(
             styled_df.style
-            .highlight_max(subset=["R²"], color="#2ecc71", props="font-weight: bold")
-            .highlight_min(subset=["MAE (log)", "RMSE (log)"], color="#2ecc71", props="font-weight: bold")
+            .highlight_max(subset=["R²"], color="#bfdbfe", props="font-weight: bold")
+            .highlight_min(subset=["MAE (log)", "RMSE (log)"], color="#bfdbfe", props="font-weight: bold")
             .format({"R²": "{:.4f}", "MAE (log)": "{:.4f}", "RMSE (log)": "{:.4f}", "MAE (tỷ VNĐ)": "{:.3f}", "RMSE (tỷ VNĐ)": "{:.3f}"}),
             use_container_width=True,
             hide_index=True,
@@ -208,44 +203,44 @@ def render_pyspark_tab():
     with col2:
         st.markdown("#### 🏅 Xếp hạng")
         rankings = [
-            ("🥇", "Random Forest", "R² = 0.820"),
-            ("🥈", "GBT", "R² = 0.805"),
-            ("🥉", "Decision Tree", "R² = 0.765"),
-            ("4️⃣", "Linear Regression", "R² = 0.685"),
+            ("🥇", "Random Forest", "R² = 0.820", "#2563eb"),
+            ("🥈", "GBT", "R² = 0.805", "#16a34a"),
+            ("🥉", "Decision Tree", "R² = 0.765", "#d97706"),
+            ("4️⃣", "Linear Regression", "R² = 0.685", "#64748b"),
         ]
-        for icon, name, score in rankings:
-            st.markdown(f"**{icon} {name}** — {score}")
+        for icon, name, score, color in rankings:
+            st.markdown(f"""
+            <div style="padding: 8px 12px; margin: 4px 0; border-radius: 8px; border-left: 3px solid {color}; background: #f8fafc;">
+                <strong>{icon} {name}</strong> <span style="color: {color}; float: right;">{score}</span>
+            </div>
+            """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.divider()
 
-    # Charts
     col_a, col_b = st.columns(2)
     with col_a:
         fig = px.bar(
-            df, x="Model", y="R²",
-            color="R²", color_continuous_scale="Blues",
-            title="R² Score — PySpark Models",
-            text="R²",
+            df, x="Model", y="R²", color="R²", color_continuous_scale="Blues",
+            title="R² Score — PySpark Models", text="R²",
         )
         fig.update_traces(texttemplate='%{text:.4f}', textposition='outside')
-        fig.update_layout(yaxis_range=[0.5, 1.0], showlegend=False, height=400, coloraxis_showscale=False)
+        fig.update_layout(yaxis_range=[0.5, 1.0], showlegend=False, height=400, coloraxis_showscale=False, **PLOTLY_LAYOUT)
         st.plotly_chart(fig, use_container_width=True)
 
     with col_b:
         fig_time = px.bar(
             df, x="Model", y="Train_time_sec",
             title="⏱ Thời gian train",
-            text="Train_time",
-            color="Model",
-            color_discrete_sequence=["#3498db", "#2ecc71", "#e74c3c", "#f39c12"],
+            text="Train_time", color="Model",
+            color_discrete_sequence=["#3b82f6", "#22c55e", "#ef4444", "#f59e0b"],
         )
         fig_time.update_traces(textposition='outside')
-        fig_time.update_layout(showlegend=False, height=400, yaxis_title="seconds")
+        fig_time.update_layout(showlegend=False, height=400, yaxis_title="seconds", **PLOTLY_LAYOUT)
         st.plotly_chart(fig_time, use_container_width=True)
 
     st.markdown("#### 💡 Phân tích kết quả PySpark")
     st.success("""
-    **🏆 Random Forest PySpark** cũng đạt hiệu năng tốt nhất:
+    **🏆 Random Forest PySpark** đạt hiệu năng tốt nhất:
     - **R² = 0.820** — gần tương đương Sklearn (0.846)
     - **MAE = 0.159** (log-scale), sai số ~1.30 tỷ VNĐ
     - Phù hợp cho **xử lý dữ liệu lớn** (distributed computing)
@@ -262,7 +257,6 @@ def render_feature_importance_tab():
 
     col1, col2 = st.columns(2)
 
-    # ── Sklearn RF Feature Importances ──
     with col1:
         st.markdown("#### 🐍 Random Forest (Sklearn)")
         fi_sklearn = get_notebook_feature_importances()
@@ -271,18 +265,15 @@ def render_feature_importance_tab():
         ]).sort_values("Importance", ascending=True)
 
         fig = px.bar(
-            fi_df, x="Importance", y="Feature",
-            orientation='h',
-            color="Importance",
-            color_continuous_scale="Greens",
+            fi_df, x="Importance", y="Feature", orientation='h',
+            color="Importance", color_continuous_scale="Greens",
             title="Top 15 Features — RF Sklearn",
             text=fi_df["Importance"].apply(lambda x: f"{x*100:.1f}%"),
         )
         fig.update_traces(textposition='outside')
-        fig.update_layout(height=500, showlegend=False, coloraxis_showscale=False)
+        fig.update_layout(height=500, showlegend=False, coloraxis_showscale=False, **PLOTLY_LAYOUT)
         st.plotly_chart(fig, use_container_width=True)
 
-    # ── PySpark GBT Feature Importances ──
     with col2:
         st.markdown("#### ⚡ GBT (PySpark)")
         fi_pyspark = get_pyspark_feature_importances()
@@ -291,25 +282,22 @@ def render_feature_importance_tab():
         ]).sort_values("Importance", ascending=True)
 
         fig2 = px.bar(
-            fi_df2, x="Importance", y="Feature",
-            orientation='h',
-            color="Importance",
-            color_continuous_scale="Blues",
+            fi_df2, x="Importance", y="Feature", orientation='h',
+            color="Importance", color_continuous_scale="Blues",
             title="Top 15 Features — GBT PySpark",
             text=fi_df2["Importance"].apply(lambda x: f"{x*100:.1f}%"),
         )
         fig2.update_traces(textposition='outside')
-        fig2.update_layout(height=500, showlegend=False, coloraxis_showscale=False)
+        fig2.update_layout(height=500, showlegend=False, coloraxis_showscale=False, **PLOTLY_LAYOUT)
         st.plotly_chart(fig2, use_container_width=True)
 
-    st.markdown("---")
+    st.divider()
 
-    # Insights
     st.markdown("#### 📌 Nhận xét đáng chú ý")
     c1, c2, c3 = st.columns(3)
     with c1:
         st.metric("🏠 Diện tích", "65.8% (Sklearn)", "36.8% (PySpark)")
-        st.caption("Yếu tố quyết định chính: Giá ≈ Đơn giá × Diện tích")
+        st.caption("Yếu tố quyết định chính: Giá ~ Đơn giá × Diện tích")
     with c2:
         st.metric("🛏️ Số phòng ngủ", "9.3% (Sklearn)", "10.7% (PySpark)")
         st.caption("Phản ánh quy mô nhà, tương quan mạnh với diện tích")
@@ -317,9 +305,8 @@ def render_feature_importance_tab():
         st.metric("📍 Giá khu vực", "7.3% (Sklearn)", "8.5% (PySpark)")
         st.caption("Giá trung bình khu vực — yếu tố vị trí gián tiếp")
 
-    st.markdown("---")
+    st.divider()
 
-    # Interpretation
     st.markdown("#### 💡 Insights kinh doanh từ Feature Importance")
     st.markdown("""
     | Insight | Giải thích | Ứng dụng |
@@ -367,8 +354,8 @@ def render_conclusion_tab():
 
     st.dataframe(
         df_combined.style
-        .highlight_max(subset=["R²"], color="#2ecc71", props="font-weight: bold")
-        .highlight_min(subset=["MAE (log)", "RMSE (log)"], color="#2ecc71", props="font-weight: bold")
+        .highlight_max(subset=["R²"], color="#bbf7d0", props="font-weight: bold")
+        .highlight_min(subset=["MAE (log)", "RMSE (log)"], color="#bbf7d0", props="font-weight: bold")
         .format({"R²": "{:.4f}", "MAE (log)": "{:.4f}", "RMSE (log)": "{:.4f}", "MAE (tỷ)": "{:.3f}"}),
         use_container_width=True,
         hide_index=True,
@@ -383,21 +370,21 @@ def render_conclusion_tab():
 
     fig.add_trace(go.Bar(
         name="Sklearn", x=sklearn_names, y=sklearn_r2,
-        marker_color="#27ae60", text=[f"{v:.4f}" for v in sklearn_r2],
+        marker_color="#16a34a", text=[f"{v:.4f}" for v in sklearn_r2],
         textposition="outside",
     ))
     fig.add_trace(go.Bar(
         name="PySpark", x=spark_names, y=spark_r2,
-        marker_color="#3498db", text=[f"{v:.4f}" for v in spark_r2],
+        marker_color="#2563eb", text=[f"{v:.4f}" for v in spark_r2],
         textposition="outside",
     ))
     fig.update_layout(
         barmode="group", title="So sánh R² — Sklearn vs PySpark",
-        yaxis_range=[0.5, 1.0], height=450,
+        yaxis_range=[0.5, 1.0], height=450, **PLOTLY_LAYOUT,
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown("---")
+    st.divider()
 
     # Conclusion boxes
     st.markdown("#### ✅ Kết luận")
@@ -406,14 +393,14 @@ def render_conclusion_tab():
     with col1:
         st.success("""
         **🏆 Model tốt nhất: Random Forest (Sklearn)**
-        
+
         | Metric | Giá trị |
         |--------|---------|
         | R² | **0.846** |
         | MAE (log) | **0.140** |
         | RMSE (log) | **0.197** |
         | MAE thực | **~1.08 tỷ VNĐ** |
-        
+
         **Lý do chọn:**
         1. R² cao nhất trong 8 models
         2. MAE & RMSE thấp nhất
@@ -425,44 +412,42 @@ def render_conclusion_tab():
     with col2:
         st.info("""
         **📊 Đánh giá chất lượng tổng thể**
-        
+
         | Tiêu chí | Đánh giá |
         |----------|----------|
-        | Accuracy (R² = 84.6%) | ⭐⭐⭐⭐⭐ Xuất sắc |
-        | Precision (MAE = 0.140) | ⭐⭐⭐⭐⭐ Rất tốt |
-        | Generalization | ⭐⭐⭐⭐ Tốt |
-        | Interpretability | ⭐⭐⭐⭐ Tốt |
-        
+        | Accuracy (R² = 84.6%) | Xuất sắc |
+        | Precision (MAE = 0.140) | Rất tốt |
+        | Generalization | Tốt |
+        | Interpretability | Tốt |
+
         **Giải thích kết quả:**
-        - Mô hình bắt được **logic thị trường** ✓
-        - Diện tích và vị trí là 2 yếu tố chính ✓
-        - Tiện nghi là yếu tố phụ ✓
-        - Sẵn sàng cho **production** 🎯
+        - Mô hình bắt được **logic thị trường**
+        - Diện tích và vị trí là 2 yếu tố chính
+        - Tiện nghi là yếu tố phụ
+        - Sẵn sàng cho **production**
         """)
 
-    st.markdown("---")
+    st.divider()
 
-    # Recommendations
     st.markdown("#### 🚀 Khuyến nghị triển khai")
     col_a, col_b = st.columns(2)
 
     with col_a:
         st.markdown("""
         **Cho Nhà Tốt Platform:**
-        1. 💰 **Auto-pricing**: Gợi ý giá bán hợp lý dựa trên RF
-        2. 🚨 **Price validation**: Cảnh báo tin đăng giá chênh >20%
-        3. 📈 **Market insights**: Phân tích trend giá theo quận
-        4. 👤 **User experience**: Hiển thị "Estimated price range"
+        1. **Auto-pricing**: Gợi ý giá bán hợp lý dựa trên RF
+        2. **Price validation**: Cảnh báo tin đăng giá chênh >20%
+        3. **Market insights**: Phân tích trend giá theo quận
+        4. **User experience**: Hiển thị "Estimated price range"
         """)
 
     with col_b:
         st.markdown("""
         **Cải thiện mô hình trong tương lai:**
-        1. 🔧 **Feature engineering**: Thêm giao thông, trường học
-        2. 🤖 **Ensemble**: Kết hợp RF + XGBoost + Neural Network
-        3. 🗺️ **Regional models**: Train riêng model cho từng quận
-        4. 🔄 **Real-time update**: Cập nhật khi có data mới
+        1. **Feature engineering**: Thêm giao thông, trường học
+        2. **Ensemble**: Kết hợp RF + XGBoost + Neural Network
+        3. **Regional models**: Train riêng model cho từng quận
+        4. **Real-time update**: Cập nhật khi có data mới
         """)
 
 render()
-

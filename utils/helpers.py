@@ -735,10 +735,10 @@ def score_uploaded_csv(uploaded_df, models):
 def get_pyspark_results():
     """Return actual PySpark model results from notebook 06_model_pyspark.ipynb."""
     return [
-        {"Model": "Random Forest", "R²": 0.8201, "RMSE_log": 0.2142, "MAE_log": 0.1588, "MAE_tỷ": 1.303, "RMSE_tỷ": 2.856, "Train_time": "53.8s", "Train_time_sec": 53.8},
-        {"Model": "GBT (Gradient Boosted)", "R²": 0.8047, "RMSE_log": 0.2232, "MAE_log": 0.1626, "MAE_tỷ": 1.400, "RMSE_tỷ": 3.108, "Train_time": "384.7s", "Train_time_sec": 384.7},
-        {"Model": "Decision Tree", "R²": 0.7653, "RMSE_log": 0.2447, "MAE_log": 0.1793, "MAE_tỷ": 1.481, "RMSE_tỷ": 3.048, "Train_time": "50.3s", "Train_time_sec": 50.3},
-        {"Model": "Linear Regression", "R²": 0.6851, "RMSE_log": 0.2834, "MAE_log": 0.2113, "MAE_tỷ": 1.674, "RMSE_tỷ": 3.128, "Train_time": "32.1s", "Train_time_sec": 32.1},
+        {"Model": "Random Forest", "R²": 0.8201, "RMSE_log": 0.2142, "MAE_log": 0.1588, "MAE_tỷ": 1.303, "RMSE_tỷ": 2.856, "Train_time": "59.1s", "Train_time_sec": 59.1},
+        {"Model": "GBT (Gradient Boosted)", "R²": 0.8047, "RMSE_log": 0.2232, "MAE_log": 0.1626, "MAE_tỷ": 1.400, "RMSE_tỷ": 3.108, "Train_time": "315.2s", "Train_time_sec": 315.2},
+        {"Model": "Decision Tree", "R²": 0.7653, "RMSE_log": 0.2447, "MAE_log": 0.1793, "MAE_tỷ": 1.481, "RMSE_tỷ": 3.048, "Train_time": "56.6s", "Train_time_sec": 56.6},
+        {"Model": "Linear Regression", "R²": 0.6851, "RMSE_log": 0.2834, "MAE_log": 0.2113, "MAE_tỷ": 1.674, "RMSE_tỷ": 3.128, "Train_time": "38.6s", "Train_time_sec": 38.6},
     ]
 
 
@@ -834,7 +834,7 @@ def get_data_pipeline_info():
     return {
         "raw_data": {"rows": 8273, "cols": 24, "sources": 3},
         "after_cleaning": {"rows": 7961, "cols": 9, "dropped_rows": 312, "dropped_cols": 15},
-        "after_feature_eng": {"rows": 6979, "cols": 29, "new_features": 22},
+        "after_feature_eng": {"rows": 6979, "cols": 29, "new_features": 20},
         "feature_groups": {
             "Categorical": ["giay_to_phap_ly", "loai_hinh", "quan"],
             "Numeric gốc": ["dien_tich", "gia_ban", "so_phong_ngu"],
@@ -850,5 +850,5 @@ def get_data_pipeline_info():
             ("dien_tich", 0.69), ("so_phong_ngu", 0.58), ("gia_kv_mean", 0.28),
             ("is_mat_tien", 0.18), ("has_thang_may", 0.17), ("tien_nghi_score", 0.15),
         ],
-        "price_stats": {"mean": 8.47, "median": 6.69, "std": 9.12, "min": 0.35, "max": 142.0},
+        "price_stats": {"mean": 7.42, "median": 6.48, "std": 5.12, "min": 0.35, "max": 142.0},
     }

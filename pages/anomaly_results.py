@@ -13,6 +13,12 @@ import components.sidebar as sidebar
 
 from utils.helpers import load_data, train_models, score_all_posts, get_notebook_anomaly_results
 
+PLOTLY_LAYOUT = dict(
+    plot_bgcolor="#fafafa",
+    paper_bgcolor="#ffffff",
+    font=dict(family="Inter"),
+)
+
 
 def render():
     sidebar.display()
@@ -358,9 +364,9 @@ def render_results_tab():
         top = df_filtered.iloc[0]
         cols = st.columns(4)
         with cols[0]:
-            st.metric("S_residual", f"{top.get('s_resid', 0):.3f}", "Trọng số: 35%")
+            st.metric("S_residual", f"{top.get('s_resid', 0):.3f}", "Trọng số: 40%")
         with cols[1]:
-            st.metric("S_minmax", f"{top.get('s_minmax', 0):.3f}", "Trọng số: 15%")
+            st.metric("S_minmax", f"{top.get('s_minmax', 0):.3f}", "Trọng số: 10%")
         with cols[2]:
             st.metric("S_percentile", f"{top.get('s_percentile', 0):.3f}", "Trọng số: 20%")
         with cols[3]:
@@ -381,8 +387,8 @@ def render_conclusion_tab():
     #### ✅ Kết quả đạt được
     
     1. **Xây dựng thành công** hệ thống phát hiện bất thường đa phương pháp:
-       - Residual Z-Score (rule-based, 35%)
-       - Min/Max Violation Check (rule-based, 15%)
+       - Residual Z-Score (rule-based, 40%)
+       - Min/Max Violation Check (rule-based, 10%)
        - Percentile Range P10-P90 (statistical, 20%)
        - Isolation Forest (ML-based, 30%)
     
