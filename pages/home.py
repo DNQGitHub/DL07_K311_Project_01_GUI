@@ -1,14 +1,13 @@
 import streamlit as st
 import components.sidebar as sidebar
 from utils.helpers import load_data, train_models, get_notebook_sklearn_results, get_pyspark_results
-from components.sidebar import get_avatar_html
 
 def main():
     sidebar.display()
 
-    avatar_phuong = get_avatar_html("phuong", "P").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
-    avatar_quang = get_avatar_html("quang", "Q").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
-    avatar_quan = get_avatar_html("quan", "Q").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
+    avatar_phuong = sidebar.get_avatar_html("phuong", "P").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
+    avatar_quang = sidebar.get_avatar_html("quang", "Q").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
+    avatar_quan = sidebar.get_avatar_html("quan", "Q").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
 
     # ── Hero Banner ──
     st.markdown(f"""
