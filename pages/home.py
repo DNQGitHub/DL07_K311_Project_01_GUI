@@ -1,20 +1,67 @@
 import streamlit as st
 import components.sidebar as sidebar
 from utils.helpers import load_data, train_models, get_notebook_sklearn_results, get_pyspark_results
+from components.sidebar import get_avatar_html
 
 def main():
     sidebar.display()
 
+    avatar_phuong = get_avatar_html("phuong", "P").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
+    avatar_quang = get_avatar_html("quang", "Q").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
+    avatar_quan = get_avatar_html("quan", "Q").replace("width:64px; height:64px;", "width:44px; height:44px;").replace("margin-bottom:8px;", "margin-bottom:0;")
+
     # ── Hero Banner ──
-    st.markdown("""
+    st.markdown(f"""
     <div class="hero-banner">
-        <h1>Du doan gia nha & Phat hien bat thuong</h1>
+        <h1>Dự đoán giá nhà & Phát hiện bất thường</h1>
         <p class="subtitle">
-            Nen tang Nha Tot — Du lieu 3 quan TP.HCM: Binh Thanh, Go Vap, Phu Nhuan
+            Nền tảng Nhà Tốt — Dữ liệu 3 quận TP.HCM: Bình Thạnh, Gò Vấp, Phú Nhuận
         </p>
-        <p class="meta">DL07 · K311 · Team 9 — DH Khoa Hoc Tu Nhien TP.HCM</p>
-        <p class="meta">GVHD: Thac sy Khuat Thuy Phuong </p>
-        <p class="meta">Thực hiện: Doan Nhat Quang — Phan Ngoc Minh Quan</p>
+        <p class="meta" style="margin-top: 14px;">
+            DL07 · K311 · Team 9 — ĐH Khoa Học Tự Nhiên TP.HCM · Trung Tâm Tin Học
+        </p>
+        <div style="display: flex; gap: 40px; margin-top: 16px; flex-wrap: wrap; align-items: flex-start;">
+            <div style="min-width: 200px; display: flex; align-items: center; gap: 12px;">
+                <div>{avatar_phuong}</div>
+                <div>
+                    <p style="color: #94a3b8; font-size: 10px; font-weight: 600; margin: 0 0 4px 0;
+                              letter-spacing: 0.08em; text-transform: uppercase;">Giảng viên hướng dẫn</p>
+                    <p style="color: #f1f5f9; font-size: 15px; font-weight: 700; margin: 0;">
+                        ThS. Khuất Thùy Phương
+                    </p>
+                </div>
+            </div>
+            <div style="border-left: 1px solid rgba(148,163,184,0.25); padding-left: 24px;">
+                <p style="color: #94a3b8; font-size: 10px; font-weight: 600; margin: 0 0 6px 0;
+                          letter-spacing: 0.08em; text-transform: uppercase;">Thực hiện</p>
+                <div style="display: flex; gap: 28px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div>{avatar_quang}</div>
+                        <div>
+                            <p style="color: #e2e8f0; font-size: 14px; font-weight: 600; margin: 0;">Đoàn Nhật Quang</p>
+                            <p style="color: #94a3b8; font-size: 12px; margin: 2px 0 0 0;">
+                                Technical Architect at Cyberlogitec VN
+                                &nbsp;·&nbsp;
+                                <a href="https://www.linkedin.com/in/dnq-httt/" target="_blank"
+                                   style="color: #93c5fd; text-decoration: none;">LinkedIn</a>
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div>{avatar_quan}</div>
+                        <div>
+                            <p style="color: #e2e8f0; font-size: 14px; font-weight: 600; margin: 0;">Phan Ngọc Minh Quân</p>
+                            <p style="color: #94a3b8; font-size: 12px; margin: 2px 0 0 0;">
+                                Technical Architect at Cyberlogitec VN - Giảng viên ĐH Huflit
+                                &nbsp;·&nbsp;
+                                <a href="https://www.linkedin.com/in/phanquan111" target="_blank"
+                                   style="color: #93c5fd; text-decoration: none;">LinkedIn</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -199,10 +246,14 @@ def main():
     # ── Footer ──
     st.markdown("""
     <div class="footer-text">
-        DL07 — K311 — Team 9 &nbsp;|&nbsp; ĐH Khoa Học Tự Nhiên TP.HCM &nbsp;|&nbsp;
-        GVHD: ThS. Khuất Thùy Phương
+        <p style="margin: 0 0 4px 0;">DL07 — K311 — Team 9 &nbsp;|&nbsp; GVHD: ThS. Khuất Thùy Phương</p>
+        <p style="margin: 0 0 2px 0;">
+            Đoàn Nhật Quang &nbsp;·&nbsp; Phan Ngọc Minh Quân
+        </p>
+        <p style="margin: 0; font-size: 11px;">
+            ĐH Khoa Học Tự Nhiên TP.HCM — Trung Tâm Tin Học &nbsp;|&nbsp; 2026
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
-if __name__ == "__main__":
-    main()
+main()

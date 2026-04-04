@@ -13,6 +13,19 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import warnings
 warnings.filterwarnings("ignore")
+import base64
+import os
+
+def get_image_base64(image_path):
+    """Read an image and convert it to Base64 for embedding in HTML."""
+    if not os.path.exists(image_path):
+        return ""
+    try:
+        with open(image_path, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode("utf-8")
+    except Exception:
+        return ""
 
 
 # ─────────────────────────────────────────────
